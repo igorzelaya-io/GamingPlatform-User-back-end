@@ -3,12 +3,10 @@ package com.d1gaming.user.user;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.mapstruct.Mapper;
 
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserView;
 
-@Mapper(componentModel = "spring")
 public abstract class UserViewMapper{
 	
 	private UserService userServ;

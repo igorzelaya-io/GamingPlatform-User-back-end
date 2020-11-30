@@ -1,7 +1,6 @@
-package com.d1gaming.user.user;
+tpackage com.d1gaming.user.user;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -21,13 +20,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.d1gaming.library.request.UserLoginRequest;
+import com.d1gaming.library.request.UserRegisterRequest;
 import com.d1gaming.library.response.JwtResponse;
 import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.role.ERole;
 import com.d1gaming.library.role.Role;
 import com.d1gaming.library.user.User;
-import com.d1gaming.library.user.UserLoginRequest;
-import com.d1gaming.library.user.UserRegisterRequest;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
@@ -52,7 +51,7 @@ public class UserAuthenticationController {
 		
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request){
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),request.getPassword()));
+		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),request.getUserPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -76,7 +75,7 @@ public class UserAuthenticationController {
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 						registerRequest.getUserCountry(),registerRequest.getUserBirthDate()
 						);
-		Set<String> strRoles = registerRequest.getAuthorities();
+		List<String> strRoles = registerRequest.getAuthorities();
 		List<Role> roles = new ArrayList<>();
 		if(strRoles == null) {
 			Role userRole = roleService.getRoleByType(ERole.ROLE_PLAYER)
