@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,8 +20,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.ExpiredJwtException;
+
 @Component
-public class JwtTokenFilter extends OncePerRequestFilter{
+public class JwtTokenFilter extends OncePerRequestFilter {
 
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
@@ -36,17 +39,37 @@ public class JwtTokenFilter extends OncePerRequestFilter{
 		try {
 			String jwt = parseJwt(request);
 			if(jwt != null && jwtTokenUtil.validate(jwt)) {
-				String username = jwtTokenUtil.getUserNameFromJwtToken(jwt);
-				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+				UserDetails userDetails = userDetailsService.loadUserByUsername(jwtTokenUtil.getUserNameFromJwtToken(jwt));
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
 				authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 		} 
+		catch(ExpiredJwtException e) {
+			String isRefreshToken = request.getHeader("isRefreshToken");
+			String requestURL = request.getRequestURL().toString();
+			if(isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("refreshtoken")) {
+				allowForRefreshToken(e, request);
+			}
+			else {
+				request.setAttribute("exception", e);
+			}
+		}
+		catch(BadCredentialsException ex) {
+			request.setAttribute("exception", ex);
+		}
+		
 		catch(Exception e) {
 			logger.error("Cannot set user authentication: {}", e);
 		}
+		
 		chain.doFilter(request, response);
+	}
+	
+	private void allowForRefreshToken(ExpiredJwtException ex, HttpServletRequest request) {
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(null, null,  null);
+		SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+		request.setAttribute("claims", ex.getCause());
 	}
 	
 	private String parseJwt(HttpServletRequest request) {

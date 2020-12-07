@@ -8,11 +8,14 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 public class UserChallengeService {
 
 	private final String USERCHALLENGE_COLLECTION = "usersChallenges";
 	
-	private Firestore firestore = UserFirestoreUtils.getFirestore();
+	@Autowired
+	private Firestore firestore;
 	
 	private CollectionReference getUserChallengesCollection() {
 		return firestore.collection(USERCHALLENGE_COLLECTION);
@@ -47,27 +50,27 @@ public class UserChallengeService {
 		batch.update(reference, "challengeId", challengeId);
 		//Assign given user to challengeUserAdmin 
 		batch.update(reference, "challengeUserAdmin", user);
-		
+		return " ";
 		
 		
 	
 	}
 	
 	public String joinChallenge(Challenge challenge) {
-		
+		return " ";
 	}
 
 	//Add challenge moderator role to user.
 	private String addChallengeModeratorRole(User user) throws InterruptedException, ExecutionException {
 		String userId = user.getUserId();
+		DocumentReference reference = firestore.collection("users").document(userId);
 		//Validating if user exists before making changes.
-		if(!UserService.isPresent(userId, "users")) {
+		if(!reference.get().get().exists()) {
 			return "User not found.";
 		}
-		//Get User moderator document reference.
-		DocumentReference reference = firestore.collection("users").document(userId);
 		WriteBatch batch = firestore.batch();
-		//TODO
+//		batch.update(reference, "", value, moreFieldsAndValues)
+//TODO
 		return " ";
 	}
 }

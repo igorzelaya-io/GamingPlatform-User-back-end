@@ -51,7 +51,8 @@ public class UserController {
 		
 	@DeleteMapping(value = "/users/delete",params="userId")
 	@PreAuthorize("hasRole('ADMINISTRATOR')")
-	public ResponseEntity<Object> deleteUserById(@RequestParam(value="userId", required = true)String userId, @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
+	public ResponseEntity<Object> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
+													@RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
 		if(userField != null) {
 			String response = userServ.deleteUserField(userId, userField);
 			if(response.equals("User not found.")) {
@@ -79,7 +80,9 @@ public class UserController {
 	
 	@PutMapping(value = "/users/update",params="userId")
 	@PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('PLAYER')")
-	public ResponseEntity<Object> updateUserField(@RequestParam(required = true, value="userId")String userId, @RequestParam(required = true)String userField, @RequestParam(required = true)String replaceValue) throws InterruptedException, ExecutionException{
+	public ResponseEntity<Object> updateUserField(@RequestParam(required = true, value="userId")String userId, 
+												@RequestParam(required = true)String userField,
+												@RequestParam(required = true)String replaceValue) throws InterruptedException, ExecutionException{
 		String response = userServ.updateUserField(userId, userField, replaceValue);
 		if(response.equals("User not found.")) {
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);

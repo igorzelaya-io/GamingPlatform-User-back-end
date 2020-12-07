@@ -1,20 +1,26 @@
-tpackage com.d1gaming.user.user;
+package com.d1gaming.user.user;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +37,8 @@ import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
 import com.d1gaming.user.security.UserDetailsImpl;
+
+import io.jsonwebtoken.impl.DefaultClaims;
 
 @CrossOrigin(origins = "localhost:4200")
 @RestController
@@ -50,20 +58,16 @@ public class UserAuthenticationController {
 	JwtTokenUtil jwtUtils;
 		
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request){
+	public ResponseEntity<Object> login(@Valid @RequestBody UserLoginRequest request){
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),request.getUserPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		List<String> roles = userDetails.getAuthorities().stream()
-				.map(item -> item.getAuthority())
-				.collect(Collectors.toList());
-		return ResponseEntity.ok(new JwtResponse(
-					jwt, userDetails.getUserId(),userDetails.getUsername(),userDetails.getUserEmail(),roles
-				));
+		return new ResponseEntity<>(new JwtResponse(jwt, userDetails.getUserId()), HttpStatus.OK);
+		
 	}
 	
-	@PostMapping("/signup")
+	@PostMapping("/register")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequest registerRequest) throws InterruptedException, ExecutionException {
 		if(userService.getUserByUserName(registerRequest.getUserName()) != null) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Username is already taken."));
@@ -136,4 +140,21 @@ public class UserAuthenticationController {
 		}
 		return ResponseEntity.ok(new MessageResponse("User created successfully."));
 	}
+	
+	@GetMapping(value = "/refreshtoken")
+	public ResponseEntity<?> refreshToken(HttpServletRequest request){
+		DefaultClaims claims = (DefaultClaims) request.getAttribute("claims");
+		Map<String, Object> expectedMap = getMapFromJWTClaims(claims);
+		String token = jwtUtils.generateRefreshJwtToken(expectedMap, expectedMap.get("sub").toString());
+		return new ResponseEntity<>(new JwtResponse(token), HttpStatus.OK);
+	}
+		
+	public Map<String, Object> getMapFromJWTClaims(DefaultClaims claims){
+		Map<String, Object> expectedMap =  new HashMap<String, Object>();
+		for(Entry<String, Object> entry : claims.entrySet()) {
+			expectedMap.put(entry.getKey(), entry.getValue());
+		}
+		return expectedMap;
+	}
+	
 }

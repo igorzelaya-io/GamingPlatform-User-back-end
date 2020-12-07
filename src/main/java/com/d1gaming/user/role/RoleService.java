@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.d1gaming.library.role.ERole;
 import com.d1gaming.library.role.Role;
-import com.d1gaming.user.firebaseconfig.UserFirestoreUtils;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
@@ -25,7 +24,8 @@ public class RoleService {
 
 	private final String ROLES_COLLECTION = "roles";
 	
-	private Firestore firestore = UserFirestoreUtils.getFirestore();
+	@Autowired
+	private Firestore firestore;
 	
 	private CollectionReference getRolesCollection() {
 		return firestore.collection(ROLES_COLLECTION);
