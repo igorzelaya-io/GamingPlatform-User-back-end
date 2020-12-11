@@ -21,7 +21,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.d1gaming</groupId>
-			<artifactId>D1Gaming-Back-end-Library</artifactId>
+			<artifactId>D1Gaming-Library-Back-end</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

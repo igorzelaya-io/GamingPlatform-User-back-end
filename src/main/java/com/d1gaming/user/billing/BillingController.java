@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,6 +27,7 @@ public class BillingController {
 	@Autowired
 	private BillingService billingService;
 	
+	@PreAuthorize("hasRole('PLAYER')")
 	@PostMapping( value = "/pay", params = "paymentSum")
 	public ResponseEntity<?> makePayment(@RequestParam("paymentSum") String paymentSum){
 		Map<String, Object>  payment = billingService.createPayment(paymentSum);
@@ -35,10 +37,11 @@ public class BillingController {
 		return new ResponseEntity<>(payment, HttpStatus.OK);
 	}
 	
+	@PreAuthorize("hasRole('PLAYER')")
 	@PostMapping(value = "/complete", params="userId")
-	public ResponseEntity<?> completePayment(@RequestBody D1Transaction transaction, HttpServletRequest request) throws InterruptedException, ExecutionException{
+	public ResponseEntity<?> completePayment(HttpServletRequest request) throws InterruptedException, ExecutionException{
 		Map<String, Object> map = new HashMap<>();
-		map = billingService.completePayment(request, transaction);
+		map = billingService.completePayment(request);
 		if(map.isEmpty()) {
 			return new ResponseEntity<>(map, HttpStatus.NO_CONTENT);
 		}
@@ -53,4 +56,5 @@ public class BillingController {
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
 }

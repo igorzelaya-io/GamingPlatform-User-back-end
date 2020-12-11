@@ -2,6 +2,7 @@ package com.d1gaming.user.billing;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,16 +53,13 @@ public class BillingService {
 		Transaction transaction = new Transaction();
 		transaction.setAmount(amount);
 		
-		List<Transaction> transactionLs = new ArrayList<>();
-		transactionLs.add(transaction);
-		
 		Payer payer = new Payer();
 		payer.setPaymentMethod("paypal");
 	
 		Payment payment = new Payment();
 		payment.setIntent("sale");
 		payment.setPayer(payer);
-		payment.setTransactions(transactionLs);
+		payment.setTransactions(Arrays.asList(transaction));
 		
 		RedirectUrls redirectUrls = new RedirectUrls();
 //		Validate URLS. 
@@ -73,7 +71,7 @@ public class BillingService {
 		Payment createdPayment = null;
 		try {
 			String redirectUrl = " ";
-			APIContext context = new APIContext(this.clientId, this.clientSecret,"sandbox");
+			APIContext context = new APIContext(this.clientId, this.clientSecret, "sandbox");
 			createdPayment = payment.create(context);
 			if(createdPayment != null) {
 				List<Links> linksLs = createdPayment.getLinks();
@@ -94,7 +92,7 @@ public class BillingService {
 		return response;
 	}
 	
-	public Map<String, Object> completePayment(HttpServletRequest request, D1Transaction transaction) throws InterruptedException, ExecutionException{
+	public Map<String, Object> completePayment(HttpServletRequest request) throws InterruptedException, ExecutionException{
 		Map<String, Object> response = new HashMap<>();
 		Payment payment = new Payment();
 		payment.setId(request.getParameter("paymentId"));

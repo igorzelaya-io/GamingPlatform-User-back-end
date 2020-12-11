@@ -138,7 +138,7 @@ public class UserAuthenticationController {
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
 		}
-		return ResponseEntity.ok(new MessageResponse("User created successfully."));
+		return new ResponseEntity<>(new MessageResponse("User created Successfully."), HttpStatus.OK);
 	}
 	
 	@GetMapping(value = "/refreshtoken")

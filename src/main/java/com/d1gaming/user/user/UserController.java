@@ -25,7 +25,7 @@ public class UserController {
 	
 	@Autowired
 	UserService userServ;
-	
+		
 	@GetMapping(value = "/users/search",params="userName")
 	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<Object> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
@@ -52,7 +52,7 @@ public class UserController {
 	@DeleteMapping(value = "/users/delete",params="userId")
 	@PreAuthorize("hasRole('ADMINISTRATOR')")
 	public ResponseEntity<Object> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
-													@RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
+												 @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
 		if(userField != null) {
 			String response = userServ.deleteUserField(userId, userField);
 			if(response.equals("User not found.")) {

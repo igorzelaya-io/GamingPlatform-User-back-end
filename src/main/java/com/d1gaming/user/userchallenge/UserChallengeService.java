@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 public class UserChallengeService {
 
-	private final String USERCHALLENGE_COLLECTION = "usersChallenges";
+	private final String USERCHALLENGE_COLLECTION = "userChallenges";
 	
 	@Autowired
 	private Firestore firestore;

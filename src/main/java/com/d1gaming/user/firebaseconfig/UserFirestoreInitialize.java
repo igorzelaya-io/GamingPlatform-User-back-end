@@ -25,7 +25,6 @@ public class UserFirestoreInitialize {
         										.toBuilder().setProjectId("d1gamingplatform")
         										.setCredentials(GoogleCredentials.fromStream(resourceFile.getInputStream()))
         										.build();
-        
 	}
 	
 	@Bean
