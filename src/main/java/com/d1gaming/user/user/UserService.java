@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.d1gaming.library.team.Team;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserStatus;
 import com.google.api.core.ApiFuture;
@@ -63,11 +64,6 @@ public class UserService {
 		}
 		return "Username is already in use";
 	}
-	//TODO: TEAM GET.
-//	Get a User's TEAM.
-//	public Team getUserTeam(String teamName) {
-//		
-//	}
 	
 	//Get User by given its email.
 	public Optional<User> getUserByEmail(String userEmail) throws InterruptedException, ExecutionException{

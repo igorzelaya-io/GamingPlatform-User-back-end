@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.d1gaming</groupId>
-	<artifactId>D1Gaming-User-Back-end1</artifactId>
+	<artifactId>D1Gaming-User-Back-end</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>D1Gaming-User-Back-end1</name>
+	<name>D1Gaming-User-Back-end</name>
 	<description>User service for D1Gaming Web Application</description>
 
 	<properties>

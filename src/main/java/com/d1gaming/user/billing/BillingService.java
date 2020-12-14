@@ -98,7 +98,7 @@ public class BillingService {
 		payment.setId(request.getParameter("paymentId"));
 		
 		PaymentExecution paymentExecution = new PaymentExecution();
-		paymentExecution.setPayerId(request.getParameter("PayerId"));
+		paymentExecution.setPayerId(request.getParameter("payerId"));
 		try {
 			APIContext context = new APIContext(this.clientId, this.clientSecret, "sandbox");
 			Payment createdPayment = payment.execute(context, paymentExecution);
