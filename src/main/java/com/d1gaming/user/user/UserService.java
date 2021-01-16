@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.d1gaming.library.team.Team;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserStatus;
 import com.google.api.core.ApiFuture;
@@ -169,7 +168,7 @@ public class UserService {
 			System.out.println("Update Time:" + response.getUpdateTime());
 		});
 		//Check if user did actually change status.
-		if(reference.get().get().toObject(User.class).getStatusCode().equals(UserStatus.ACTIVE)) {
+		if(reference.get().get().toObject(User.class).getUserStatusCode().equals(UserStatus.ACTIVE)) {
 			return "User with ID: " + "'" +  userId + "'" + " was deleted.";
 		}
 		return "User could not be deleted";
@@ -196,7 +195,7 @@ public class UserService {
 		WriteBatch batch = firestore.batch().update(reference,"userStatusCode",UserStatus.BANNED);
 		List<WriteResult> results = batch.commit().get();
 		results.forEach(response -> System.out.println("Update Time: " + response.getUpdateTime()));
-		if(reference.get().get().toObject(User.class).getStatusCode().equals(UserStatus.BANNED)) {
+		if(reference.get().get().toObject(User.class).getUserStatusCode().equals(UserStatus.BANNED)) {
 			return "User with ID: " + "'" + userId + "'"  + " was BANNED.";
 		}
 		return "User could not be BANNED.";
@@ -325,12 +324,10 @@ public class UserService {
 	}
 
 	//Evaluate if given document's status corresponds to active.
-	public boolean isActive(String userId, String collectionName) throws InterruptedException, ExecutionException {
-		DocumentReference reference = firestore.collection(collectionName).document(userId);
-		ApiFuture<DocumentSnapshot> snapshot = reference.get();
-		DocumentSnapshot result = snapshot.get();
-		User user = result.toObject(User.class);	
-		if(user.getStatusCode().equals(UserStatus.ACTIVE)) {
+	public boolean isActive(String userId) throws InterruptedException, ExecutionException {
+		DocumentReference reference = getUserReference(userId);
+		DocumentSnapshot snapshot = reference.get().get();
+		if(snapshot.exists() && snapshot.toObject(User.class).getUserStatusCode().equals(UserStatus.ACTIVE)) {
 			return true;
 		}
 		return false;

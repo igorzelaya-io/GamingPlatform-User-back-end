@@ -7,10 +7,9 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.d1gaming.library.request.TeamInviteRequest;
-import com.d1gaming.library.request.TeamInviteRequestStatus;
 import com.d1gaming.library.team.Team;
-import com.d1gaming.library.tournament.Tournament;
+import com.d1gaming.library.team.TeamInviteRequest;
+import com.d1gaming.library.team.TeamInviteRequestStatus;
 import com.d1gaming.library.user.User;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;

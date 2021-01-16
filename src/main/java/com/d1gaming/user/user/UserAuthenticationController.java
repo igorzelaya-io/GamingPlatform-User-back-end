@@ -5,9 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -59,7 +57,8 @@ public class UserAuthenticationController {
 		
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(@Valid @RequestBody UserLoginRequest request){
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),request.getUserPassword()));
+		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),
+																													request.getUserPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -77,8 +76,7 @@ public class UserAuthenticationController {
 		}
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
-						registerRequest.getUserCountry(),registerRequest.getUserBirthDate()
-						);
+						registerRequest.getUserCountry(),registerRequest.getUserBirthDate());
 		List<String> strRoles = registerRequest.getAuthorities();
 		List<Role> roles = new ArrayList<>();
 		if(strRoles == null) {
