@@ -1,6 +1,5 @@
 package com.d1gaming.user.firebaseconfig;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.annotation.PostConstruct;
 
@@ -16,13 +15,13 @@ import com.google.cloud.firestore.FirestoreOptions;
 @Service
 public class UserFirestoreInitialize {
 	
-	@Value("classpath:static/D1GamingPlatform-3576ad78e8f2.json")
+	@Value("classpath:static/d1gamingapp-firebase-adminsdk-2rph3-720d19c9ae.json")
 	Resource resourceFile;
 	
 	@PostConstruct
 	public FirestoreOptions initialize() throws IOException {
         return FirestoreOptions.getDefaultInstance()
-        										.toBuilder().setProjectId("d1gamingplatform")
+        										.toBuilder().setProjectId("d1gamingapp")
         										.setCredentials(GoogleCredentials.fromStream(resourceFile.getInputStream()))
         										.build();
 	}
