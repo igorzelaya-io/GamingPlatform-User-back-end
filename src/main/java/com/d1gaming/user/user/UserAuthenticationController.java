@@ -66,7 +66,7 @@ public class UserAuthenticationController {
 	}
 	
 	@PostMapping("/register")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequest registerRequest) throws InterruptedException, ExecutionException {
+	public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest registerRequest) throws InterruptedException, ExecutionException {
 		if(userService.getUserByUserName(registerRequest.getUserName()) != null) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Username is already taken."));
 		}
