@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.d1gaming</groupId>
-	<artifactId>D1Gaming-User-Back-end1</artifactId>
+	<artifactId>D1Gaming-User-Back-end</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>D1Gaming-User-Back-end1</name>
+	<name>D1Gaming-User-Back-end</name>
 	<description>User service for D1Gaming Web Application</description>
 
 	<properties>
@@ -21,7 +21,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.d1gaming</groupId>
-			<artifactId>D1Gaming-Back-end-Library</artifactId>
+			<artifactId>D1Gaming-Library-Back-end</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -29,14 +29,19 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.google.firebase</groupId>
-		    <artifactId>firebase-admin</artifactId>
-		  	<version>7.0.1</version>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.paypal.sdk</groupId>
+		    <artifactId>rest-api-sdk</artifactId>
+		    <version>1.13.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.cloud</groupId>
+		    <artifactId>google-cloud-firestore</artifactId>
+		    <version>2.1.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.springframework.security</groupId>
@@ -51,12 +56,7 @@
 		    <groupId>io.jsonwebtoken</groupId>
 		    <artifactId>jjwt</artifactId>
 		    <version>0.3</version>
-		</dependency><!-- 
-		<dependency>
-		    <groupId>org.springframework.security</groupId>
-		    <artifactId>spring-security-core</artifactId>
-		</dependency>	 -->
-				
+		</dependency>
 		<dependency>
 		    <groupId>org.springframework</groupId>
 		    <artifactId>spring-tx</artifactId>
