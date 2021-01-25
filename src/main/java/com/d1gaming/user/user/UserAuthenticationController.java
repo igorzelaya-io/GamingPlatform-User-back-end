@@ -75,7 +75,7 @@ public class UserAuthenticationController {
 		}
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
-						registerRequest.getUserCountry(),registerRequest.getUserBirthDate());
+						registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0);
 		List<String> strRoles = registerRequest.getAuthorities();
 		List<Role> roles = new ArrayList<>();
 		if(strRoles == null) {
@@ -134,6 +134,7 @@ public class UserAuthenticationController {
 			userService.saveUser(user);
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
+			return new ResponseEntity<>(new MessageResponse("Something went wrong. Please try again later."), HttpStatus.EXPECTATION_FAILED);
 		}
 		return new ResponseEntity<>(new MessageResponse("User created Successfully."), HttpStatus.OK);
 	}
