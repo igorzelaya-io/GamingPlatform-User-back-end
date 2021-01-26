@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ public class UserImageController {
 	@Autowired
 	private UserImageService userImageService;
 
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMINISTRATOR')")
 	@PostMapping(value = "/images/save", params = "userId, file")
 	public ResponseEntity<?> saveImage(@RequestParam(required = true)String userId, 
 									   @RequestParam(required = true)MultipartFile file) throws IOException, InterruptedException, ExecutionException{
@@ -36,6 +38,7 @@ public class UserImageController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
+	
 	@GetMapping(value = "/image/search", params = "userId")
 	public ResponseEntity<?> getUserImage(@RequestParam(required = true) String userId) throws InterruptedException, ExecutionException{
 		Optional<ImageModel> userImage = userImageService.getUserImage(userId);

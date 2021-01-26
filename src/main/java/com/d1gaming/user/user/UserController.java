@@ -39,6 +39,16 @@ public class UserController {
 		return new ResponseEntity<>(user,HttpStatus.OK);
 	}
 	
+	@GetMapping(value= "/users/search", params="userId")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMINISTRATOR')")
+	public ResponseEntity<?> getUserByID(@RequestParam(required = true, value = "userId")String userId) throws InterruptedException, ExecutionException{
+		User searchedUser = userServ.getUserById(userId);
+		if(searchedUser != null) {
+			return new ResponseEntity<>(searchedUser, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(searchedUser, HttpStatus.NOT_FOUND);
+	}
+	
 	@GetMapping("/users")
 	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<List<User>> getAllUsers() throws InterruptedException, ExecutionException{
