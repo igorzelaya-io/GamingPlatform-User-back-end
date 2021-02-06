@@ -20,7 +20,7 @@ import com.d1gaming.library.user.User;
 
 @RestController
 @RequestMapping("/userapi")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "localhost:4200")
 public class UserController {
 	
 	@Autowired
