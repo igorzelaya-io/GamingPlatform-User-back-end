@@ -1,6 +1,5 @@
 package com.d1gaming.user.security;
 
-import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.user.user.UserService;
 
 @Component

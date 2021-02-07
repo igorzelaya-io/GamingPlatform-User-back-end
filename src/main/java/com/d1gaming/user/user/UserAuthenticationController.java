@@ -34,7 +34,7 @@ import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
-import com.d1gaming.user.security.UserDetailsImpl;
+import com.d1gaming.library.user.UserDetailsImpl;
 
 import io.jsonwebtoken.impl.DefaultClaims;
 
@@ -62,7 +62,7 @@ public class UserAuthenticationController {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		return new ResponseEntity<>(new JwtResponse(jwt, userDetails.getUserId()), HttpStatus.OK);
+		return new ResponseEntity<Object>(new JwtResponse(jwt, userDetails.getUserId()), HttpStatus.OK);
 	}
 	
 	@PostMapping("/register")
