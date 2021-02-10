@@ -58,7 +58,7 @@ public class UserAuthenticationController {
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(@Valid @RequestBody UserLoginRequest request){
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),
-																													request.getUserPassword()));
+																												   request.getUserPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateJwtToken(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
