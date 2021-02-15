@@ -8,10 +8,12 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
@@ -92,6 +94,18 @@ public class UserService {
 			//there will only be one User object on the list, we will retrieve the first one.
 			for(User currUser: userList) {
 				return Optional.of(currUser);
+			}
+		}
+		return null;
+	}
+	
+	public Optional<UserDetails> getUserDetailsByUserName(String userName) throws InterruptedException, ExecutionException{
+		Query query = getUsersCollection().whereEqualTo("userName", userName);
+		QuerySnapshot userSnapshot = query.get().get();
+		if(!userSnapshot.isEmpty()) {
+			List<User> userList = userSnapshot.toObjects(User.class);
+			for(User currUser : userList) {
+				return Optional.of(UserDetailsImpl.build(currUser));
 			}
 		}
 		return null;
