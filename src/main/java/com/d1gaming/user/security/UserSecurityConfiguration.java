@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +42,12 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Autowired
 	private UserService userService;
+	
+	private final Logger logger = LoggerFactory.getLogger(UserSecurityConfiguration.class);
+	
+	public UserSecurityConfiguration() {
+		
+	}
 	
 	@Bean
 	public JwtTokenFilter authenticationJwtTokenFilter() {
@@ -88,6 +96,7 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http = http.exceptionHandling()
 				.authenticationEntryPoint(
 						(request, response, ex) -> {
+							logger.error("Unauthorized request - {}", ex.getMessage());
 							response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
 						}).and();
 		

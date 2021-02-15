@@ -1,10 +1,10 @@
 package com.d1gaming.user.user;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,10 +31,10 @@ import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.role.ERole;
 import com.d1gaming.library.role.Role;
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
-import com.d1gaming.library.user.UserDetailsImpl;
 
 import io.jsonwebtoken.impl.DefaultClaims;
 
@@ -76,8 +76,8 @@ public class UserAuthenticationController {
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 						registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0);
-		List<String> strRoles = registerRequest.getAuthorities();
-		List<Role> roles = new ArrayList<>();
+		Set<String> strRoles = registerRequest.getUseRoles();
+		Set<Role> roles = new HashSet<>();
 		if(strRoles == null) {
 			Role userRole = roleService.getRoleByType(ERole.ROLE_PLAYER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
