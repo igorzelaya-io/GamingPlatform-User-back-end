@@ -1,13 +1,9 @@
 package com.d1gaming.user.user;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +14,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,8 +30,6 @@ import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
-
-import io.jsonwebtoken.impl.DefaultClaims;
 
 @CrossOrigin(origins = "localhost:4200")
 @RestController
@@ -60,7 +53,7 @@ public class UserAuthenticationController {
 		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),
 																												   request.getUserPassword()));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String jwt = jwtUtils.generateJwtToken(authentication);
+		String jwt = jwtUtils.generateAccessToken((User) authentication.getPrincipal());
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		return new ResponseEntity<Object>(new JwtResponse(jwt, userDetails.getUserId()), HttpStatus.OK);
 	}
@@ -138,21 +131,4 @@ public class UserAuthenticationController {
 		}
 		return new ResponseEntity<>(new MessageResponse("User created Successfully."), HttpStatus.OK);
 	}
-	
-	@GetMapping(value = "/refreshtoken")
-	public ResponseEntity<?> refreshToken(HttpServletRequest request){
-		DefaultClaims claims = (DefaultClaims) request.getAttribute("claims");
-		Map<String, Object> expectedMap = getMapFromJWTClaims(claims);
-		String token = jwtUtils.generateRefreshJwtToken(expectedMap, expectedMap.get("sub").toString());
-		return new ResponseEntity<>(new JwtResponse(token), HttpStatus.OK);
-	}
-		
-	public Map<String, Object> getMapFromJWTClaims(DefaultClaims claims){
-		Map<String, Object> expectedMap =  new HashMap<String, Object>();
-		for(Entry<String, Object> entry : claims.entrySet()) {
-			expectedMap.put(entry.getKey(), entry.getValue());
-		}
-		return expectedMap;
-	}
-	
 }

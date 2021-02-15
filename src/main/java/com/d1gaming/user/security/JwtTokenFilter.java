@@ -49,7 +49,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		}
 		UserDetails userDetails = null;
 		try {
-			userDetails = userService.getUserDetailsByUserName(jwtToken)
+			userDetails = userService.getUserDetailsByUserName(jwtTokenUtil.getUserNameFromJwtToken(jwtToken))
 					.orElse(null);
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
