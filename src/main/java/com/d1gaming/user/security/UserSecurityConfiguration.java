@@ -31,11 +31,7 @@ import com.d1gaming.user.user.UserService;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(
-//			securedEnabled = true,
-//			jsr250Enabled = true,
-			prePostEnabled = true
-		)
+@EnableGlobalMethodSecurity( prePostEnabled = true )
 public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Autowired
@@ -96,17 +92,12 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http = http.exceptionHandling()
 				.authenticationEntryPoint(
 						(request, response, ex) -> {
-							logger.error("Unauthorized request - {}", ex.getMessage());
+							logger.error("Unauthorized request -{}", ex.getMessage());
 							response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
 						}).and();
 		
 		http.authorizeRequests()
-			.antMatchers("/userapi/**").permitAll()
-			.antMatchers("/auth/register").permitAll()
-			.antMatchers("/auth/login").permitAll()
-			.antMatchers("/billing/**").permitAll()
-			.antMatchers("/userimagesapi/**").permitAll()
-			.antMatchers("/userteamapi").permitAll()
+			.antMatchers("/**").permitAll()
 			.anyRequest().authenticated();
 			
 		http.addFilterBefore(authenticationJwtTokenFilter(),

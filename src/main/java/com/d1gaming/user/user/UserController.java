@@ -21,13 +21,13 @@ import com.d1gaming.library.user.User;
 @RestController
 @RequestMapping("/userapi")
 @CrossOrigin(origins = "localhost:4200")
+@PreAuthorize("permitAll()")
 public class UserController {
 	
 	@Autowired
 	UserService userServ;
 		
 	@GetMapping(value = "/users/search",params="userName")
-	@PreAuthorize("permitAll()")
 	public ResponseEntity<Object> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
 		if(userName == null) {
 			return new ResponseEntity<>("Invalid Input",HttpStatus.BAD_REQUEST);
@@ -40,7 +40,6 @@ public class UserController {
 	}
 	
 	@GetMapping(value= "/users/search", params="userId")
-	@PreAuthorize("permitAll()")
 	public ResponseEntity<?> getUserByID(@RequestParam(required = true, value = "userId")String userId) throws InterruptedException, ExecutionException{
 		User searchedUser = userServ.getUserById(userId);
 		if(searchedUser != null) {
@@ -50,7 +49,6 @@ public class UserController {
 	}
 	
 	@GetMapping("/users")
-	@PreAuthorize("permitAll()")
 	public ResponseEntity<List<User>> getAllUsers() throws InterruptedException, ExecutionException{
 		List<User> ls = userServ.getAllUsers();
 		if(ls.isEmpty()) {
