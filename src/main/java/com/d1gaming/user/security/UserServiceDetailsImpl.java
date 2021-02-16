@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserDetailsImpl;
@@ -20,7 +19,6 @@ public class UserServiceDetailsImpl implements UserDetailsService {
 	UserService userService;
 	
 	@Override
-	@Transactional
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = null;
 		try {

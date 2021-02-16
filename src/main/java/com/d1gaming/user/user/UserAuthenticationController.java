@@ -26,7 +26,6 @@ import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.role.ERole;
 import com.d1gaming.library.role.Role;
 import com.d1gaming.library.user.User;
-import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
@@ -50,12 +49,13 @@ public class UserAuthenticationController {
 		
 	@PostMapping("/login")
 	public ResponseEntity<Object> login(@Valid @RequestBody UserLoginRequest request){
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUserName(),
-																												   request.getUserPassword()));
+		Authentication authentication = authenticationManager.authenticate(
+											new UsernamePasswordAuthenticationToken(request.getUserName(),
+																					request.getUserPassword()
+											));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		String jwt = jwtUtils.generateAccessToken((User) authentication.getPrincipal());
-		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-		return new ResponseEntity<Object>(new JwtResponse(jwt, userDetails.getUserId()), HttpStatus.OK);
+		return new ResponseEntity<Object>(new JwtResponse(jwt, jwtUtils.getUserId(jwt)), HttpStatus.OK);
 	}
 	
 	@PostMapping("/register")

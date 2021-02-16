@@ -27,7 +27,6 @@ public class UserController {
 	UserService userServ;
 		
 	@GetMapping(value = "/users/search",params="userName")
-	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<Object> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
 		if(userName == null) {
 			return new ResponseEntity<>("Invalid Input",HttpStatus.BAD_REQUEST);
@@ -40,7 +39,6 @@ public class UserController {
 	}
 	
 	@GetMapping(value= "/users/search", params="userId")
-	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMINISTRATOR')")
 	public ResponseEntity<?> getUserByID(@RequestParam(required = true, value = "userId")String userId) throws InterruptedException, ExecutionException{
 		User searchedUser = userServ.getUserById(userId);
 		if(searchedUser != null) {
@@ -50,7 +48,6 @@ public class UserController {
 	}
 	
 	@GetMapping("/users")
-	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<List<User>> getAllUsers() throws InterruptedException, ExecutionException{
 		List<User> ls = userServ.getAllUsers();
 		if(ls.isEmpty()) {
@@ -60,7 +57,7 @@ public class UserController {
 	}
 		
 	@DeleteMapping(value = "/users/delete",params="userId")
-	@PreAuthorize("hasRole('ADMINISTRATOR')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<Object> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
 												 @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
 		if(userField != null) {
@@ -79,7 +76,7 @@ public class UserController {
 	
 	
 	@PutMapping(value = "/users/update")
-	@PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('PLAYER')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<Object> updateUser(@RequestBody User user) throws InterruptedException, ExecutionException{
 		String response = userServ.updateUser(user);
 		if(response.equals("User not found.")) {
@@ -89,7 +86,7 @@ public class UserController {
 	}
 	
 	@PutMapping(value = "/users/update",params="userId")
-	@PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('PLAYER')")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<Object> updateUserField(@RequestParam(required = true, value="userId")String userId, 
 												  @RequestParam(required = true)String userField,
 												  @RequestParam(required = true)String replaceValue) throws InterruptedException, ExecutionException{

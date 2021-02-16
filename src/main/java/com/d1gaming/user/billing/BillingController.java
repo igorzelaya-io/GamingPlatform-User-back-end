@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.d1gaming.library.transaction.D1Transaction;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
-@RequestMapping( value = "/paypal")
+@CrossOrigin(origins = "localhost:4200")
+@RequestMapping( value = "/billing")
 public class BillingController {
 
 	@Autowired

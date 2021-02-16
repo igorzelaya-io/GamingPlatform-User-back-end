@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,7 +51,8 @@ public class UserTeamController {
 		return new ResponseEntity<>(userTeam, HttpStatus.OK);
 	}
 	
-	@PostMapping(value = "/userTeams/exit")  
+	@PostMapping(value = "/userTeams/exit")
+	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<?> exitTeam(@RequestParam(required = true)String userId,
 									  @RequestBody(required = true)String teamId) throws InterruptedException, ExecutionException{
 		String response = userTeamService.exitTeam(userId, teamId);
@@ -74,6 +76,7 @@ public class UserTeamController {
 	}
 	
 	@PostMapping(value = "/userTeamRequests/accept")
+	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<?> acceptUserTeamRequest(@RequestBody(required = true)TeamInviteRequest request) throws InterruptedException, ExecutionException{
 		String response = userTeamService.acceptTeamInvite(request);
 		switch(response) {
@@ -89,6 +92,7 @@ public class UserTeamController {
 	}
 	
 	@PostMapping(value = "/userTeamRequests/decline")
+	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<?> declineUserTeamRequest(@RequestBody(required = true)TeamInviteRequest request){
 		String response = userTeamService.declineTeamInvite(request);
 		return new ResponseEntity<>(response, HttpStatus.OK);

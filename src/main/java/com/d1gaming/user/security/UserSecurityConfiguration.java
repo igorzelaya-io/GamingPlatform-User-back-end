@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,8 +32,8 @@ import com.d1gaming.user.user.UserService;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(
-			securedEnabled = true,
-			jsr250Enabled = true,
+//			securedEnabled = true,
+//			jsr250Enabled = true,
 			prePostEnabled = true
 		)
 public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -45,8 +46,9 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	
 	private final Logger logger = LoggerFactory.getLogger(UserSecurityConfiguration.class);
 	
-	public UserSecurityConfiguration() {
-		
+	@Bean
+	GrantedAuthorityDefaults grantedAuthorityDefaults() {
+		return new GrantedAuthorityDefaults("");
 	}
 	
 	@Bean
@@ -104,6 +106,9 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 			.antMatchers("/userapi/**").permitAll()
 			.antMatchers("/auth/register").permitAll()
 			.antMatchers("/auth/login").permitAll()
+			.antMatchers("/billing/**").permitAll()
+			.antMatchers("/userimagesapi/**").permitAll()
+			.antMatchers("/userteamapi").permitAll()
 			.anyRequest().authenticated();
 			
 		http.addFilterBefore(authenticationJwtTokenFilter(),
