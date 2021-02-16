@@ -1,7 +1,7 @@
 package com.d1gaming.user.user;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.validation.Valid;
@@ -69,8 +69,8 @@ public class UserAuthenticationController {
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 						registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0);
-		Set<String> strRoles = registerRequest.getUseRoles();
-		Set<Role> roles = new HashSet<>();
+		List<String> strRoles = registerRequest.getUserRoles();
+		List<Role> roles = new ArrayList<>();
 		if(strRoles == null) {
 			Role userRole = roleService.getRoleByType(ERole.ROLE_PLAYER)
 					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
