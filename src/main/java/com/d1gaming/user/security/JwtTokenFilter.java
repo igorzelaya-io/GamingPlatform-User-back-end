@@ -61,7 +61,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		
 		UserDetails userDetails = null;
 			try {
-				userDetails = userService.getUserDetailsByUserName(jwtTokenUtil.getUserNameFromJwtToken(jwtToken))
+				userDetails = userService.getUserDetailsByUserName(jwtTokenUtil.getUserName(jwtToken))
 						.orElse(null);
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();

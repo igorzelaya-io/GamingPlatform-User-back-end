@@ -58,7 +58,7 @@ public class UserAuthenticationController {
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		User authenticatedUser = UserDetailsImpl.toUser((UserDetailsImpl) authentication.getPrincipal());
 		String jwt = jwtUtils.generateAccessToken(authenticatedUser);
-		return new ResponseEntity<Object>(new JwtResponse(jwt, jwtUtils.getUserId(jwt)), HttpStatus.OK);
+		return new ResponseEntity<Object>(new JwtResponse(jwt, authenticatedUser.getUserId()), HttpStatus.OK);
 	}
 	
 	@PostMapping("/register")
