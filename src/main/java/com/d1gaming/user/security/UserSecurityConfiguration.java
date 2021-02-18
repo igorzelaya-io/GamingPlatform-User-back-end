@@ -83,7 +83,7 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception{
-		http = http.cors().and();
+		http = http.cors().and().csrf().disable();
 		
 		http = http.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -96,9 +96,9 @@ public class UserSecurityConfiguration extends WebSecurityConfigurerAdapter {
 							response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
 						}).and();
 		
-		http.authorizeRequests()
-			.antMatchers("/**").permitAll()
-			.anyRequest().authenticated();
+	   http.authorizeRequests()
+	   		.antMatchers("/**").permitAll()
+	   		.anyRequest().authenticated();
 			
 		http.addFilterBefore(authenticationJwtTokenFilter(),
 				UsernamePasswordAuthenticationFilter.class);	

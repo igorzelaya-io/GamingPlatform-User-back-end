@@ -49,7 +49,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			}
 		}
 		catch(NullPointerException e) {
-			logger.warn("Warning, -{}", e.getMessage());
+			logger.warn("Warning, -{}", e.getCause());
 			chain.doFilter(request, response);
 			return;
 		}

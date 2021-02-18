@@ -9,6 +9,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,16 +24,16 @@ import com.d1gaming.library.request.UserLoginRequest;
 import com.d1gaming.library.request.UserRegisterRequest;
 import com.d1gaming.library.response.JwtResponse;
 import com.d1gaming.library.response.MessageResponse;
-import com.d1gaming.library.role.ERole;
 import com.d1gaming.library.role.Role;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
 
-@CrossOrigin(origins = "localhost:4200")
 @RestController
-@RequestMapping(path = "/auth")
+@RequestMapping("/auth")
+@CrossOrigin(origins = "localhost:4200")
+@PreAuthorize("permitAll()")
 public class UserAuthenticationController {
 	
 	@Autowired
@@ -69,11 +70,11 @@ public class UserAuthenticationController {
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 						registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0);
+		
 		List<String> strRoles = registerRequest.getUserRoles();
 		List<Role> roles = new ArrayList<>();
 		if(strRoles == null) {
-			Role userRole = roleService.getRoleByType(ERole.ROLE_PLAYER)
-					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			Role userRole = new Role( Role.PLAYER );
 			roles.add(userRole);
 		}
 		else {
@@ -81,44 +82,42 @@ public class UserAuthenticationController {
 				switch(role) {
 					case "Administrator":
 						try {
-							Role adminRole = roleService.getRoleByType(ERole.ROLE_ADMIN)
-								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							Role adminRole = new Role( Role.ADMIN );
 							roles.add(adminRole);
 							break;
 						} 
-						catch (RuntimeException | InterruptedException | ExecutionException e) {
+						catch (RuntimeException e) {
 							e.printStackTrace();
 						}
 					case "ChallengeModerator":
 						try {
-							Role moderator = roleService.getRoleByType(ERole.ROLE_CHALLENGE_MODERATOR)
-									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							Role moderator = new Role( Role.CHALLENGE_ADMIN );
 							roles.add(moderator);
 							break;
 						}
-						catch(RuntimeException | InterruptedException | ExecutionException e) {
+						catch(RuntimeException e) {
 							e.printStackTrace();
 						}
 					case "TourneyModerator":
 						try {
-							Role moderator = roleService.getRoleByType(ERole.ROLE_TOURNEY_MODERATOR)
-									.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+							Role moderator = new Role( Role.TOURNEY_ADMIN );	
 							roles.add(moderator);
 							break;
 						}
-						catch(RuntimeException | ExecutionException | InterruptedException e) {
+						catch(RuntimeException  e) {
+							e.printStackTrace();
+						}
+					case "Player":
+						try {
+							Role player = new Role( Role.PLAYER );
+							roles.add(player);
+							break;
+						}
+						catch(RuntimeException e) {
 							e.printStackTrace();
 						}
 					default:
-						try {
-							Role userRole = roleService.getRoleByType(ERole.ROLE_PLAYER)
-								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-							roles.add(userRole);
-							break;
-						}
-						catch(RuntimeException | ExecutionException | InterruptedException e) {
-							e.printStackTrace();
-						}
+						throw new RuntimeException("Error: Role does not exist.");
 					}
 			});
 		}
