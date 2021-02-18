@@ -26,6 +26,7 @@ import com.d1gaming.library.response.JwtResponse;
 import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.role.Role;
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.user.role.RoleService;
 import com.d1gaming.user.security.JwtTokenUtil;
@@ -55,7 +56,8 @@ public class UserAuthenticationController {
 																					request.getUserPassword()
 											));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String jwt = jwtUtils.generateAccessToken((User) authentication.getPrincipal());
+		User authenticatedUser = UserDetailsImpl.toUser((UserDetailsImpl) authentication.getPrincipal());
+		String jwt = jwtUtils.generateAccessToken(authenticatedUser);
 		return new ResponseEntity<Object>(new JwtResponse(jwt, jwtUtils.getUserId(jwt)), HttpStatus.OK);
 	}
 	
