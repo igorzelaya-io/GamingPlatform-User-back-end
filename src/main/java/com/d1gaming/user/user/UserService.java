@@ -168,11 +168,7 @@ public class UserService {
 		results.forEach(response -> {
 			System.out.println("Update Time:" + response.getUpdateTime());
 		});
-		//Check if user did actually change status.
-		if(reference.get().get().toObject(User.class).getUserStatusCode().equals(UserStatus.ACTIVE)) {
-			return "User with ID: " + "'" +  userId + "'" + " was deleted.";
-		}
-		return "User could not be deleted";
+		return "User with ID: " + "'" +  userId + "'" + " was deleted.";
 	}
 	
 	//Delete a User's certain field value.
