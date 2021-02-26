@@ -40,7 +40,7 @@ public class UserController {
 	}
 	
 	@GetMapping(value= "/users/search", params="userId")
-	public ResponseEntity<?> getUserByID(@RequestParam(required = true, value = "userId")String userId) throws InterruptedException, ExecutionException{
+	public ResponseEntity<?> getUserByID(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
 		User searchedUser = userServ.getUserById(userId);
 		if(searchedUser != null) {
 			return new ResponseEntity<>(searchedUser, HttpStatus.OK);
