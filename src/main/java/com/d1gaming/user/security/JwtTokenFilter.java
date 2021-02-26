@@ -33,8 +33,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 	@Autowired
 	private UserService userService;
 	
-	private Logger logger = LoggerFactory.getLogger(JwtTokenFilter.class);
-	
 	//Get authorization header and validate it.
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, 
@@ -49,7 +47,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			}
 		}
 		catch(NullPointerException e) {
-			logger.info("Accessing public Endpoint.");
 			chain.doFilter(request, response);
 			return;
 		}
