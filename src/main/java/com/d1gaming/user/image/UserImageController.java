@@ -21,12 +21,13 @@ import com.d1gaming.library.image.ImageModel;
 @RestController
 @CrossOrigin( origins = "localhost:4200")
 @RequestMapping(value = "/userimagesapi")
+@PreAuthorize("permitAll()")
 public class UserImageController {
 
 	@Autowired
 	private UserImageService userImageService;
 
-	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMINISTRATOR')")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
 	@PostMapping(value = "/images/save", params = "userId, file")
 	public ResponseEntity<?> saveImage(@RequestParam(required = true)String userId, 
 									   @RequestParam(required = true)MultipartFile file) throws IOException, InterruptedException, ExecutionException{

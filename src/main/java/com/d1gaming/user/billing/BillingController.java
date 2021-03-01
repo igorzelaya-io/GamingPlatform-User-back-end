@@ -22,6 +22,7 @@ import com.d1gaming.library.transaction.D1Transaction;
 @RestController
 @CrossOrigin(origins = "localhost:4200")
 @RequestMapping( value = "/billing")
+@PreAuthorize("permitAll()")
 public class BillingController {
 
 	@Autowired
@@ -49,6 +50,7 @@ public class BillingController {
 	}
 	
 	@PostMapping(value = "/save", params= "userId")
+	@PreAuthorize("hasRole('PLAYER')")
 	public ResponseEntity<?> savePayment(@RequestParam(required = true)String userId, @RequestBody D1Transaction transaction) throws InterruptedException, ExecutionException{
 		String response = billingService.addPaymentToUser(userId, transaction);
 		if(response.equals("User not found")) {

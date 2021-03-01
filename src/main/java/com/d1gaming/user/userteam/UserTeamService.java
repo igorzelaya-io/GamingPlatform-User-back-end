@@ -10,14 +10,16 @@ import org.springframework.stereotype.Service;
 import com.d1gaming.library.team.Team;
 import com.d1gaming.library.team.TeamInviteRequest;
 import com.d1gaming.library.team.TeamInviteRequestStatus;
+import com.d1gaming.library.team.TeamStatus;
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserStatus;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteBatch;
-import com.google.cloud.firestore.WriteResult;
 
 @Service
 public class UserTeamService {
@@ -36,106 +38,123 @@ public class UserTeamService {
 		return firestore.collection(TEAMS_COLLECTION);
 	}
 	
+	private DocumentReference getUserReference(String userId) {
+		return getUsersCollection().document(userId);
+	}
+	
+	private DocumentReference getTeamReference(String teamId) {
+		return getTeamsCollection().document(teamId); 
+	}
+	
+	private boolean isActiveUser(String userId) throws InterruptedException, ExecutionException {
+		DocumentReference userReference = getUserReference(userId);
+		DocumentSnapshot userSnapshot = userReference.get().get();
+		if(userSnapshot.exists() && userSnapshot.toObject(User.class).getUserStatusCode().equals(UserStatus.ACTIVE)) {
+			return true;
+		}
+		return false; 
+	}
+	
+	private boolean isActiveTeam(String teamId) throws InterruptedException, ExecutionException {
+		DocumentReference teamReference = getTeamReference(teamId);
+		DocumentSnapshot teamSnapshot = teamReference.get().get();
+		if(teamSnapshot.exists() && teamSnapshot.toObject(Team.class).getTeamStatus().equals(TeamStatus.ACTIVE)) {
+			return true;
+		}
+		return false;
+	}
+	
 	//Get a User's TEAM by its teamId.
 	public Optional<Team> getUserTeamById(String userId, String teamId) throws InterruptedException, ExecutionException {
-		DocumentReference userReference = getUsersCollection().document(userId);
-		DocumentReference teamReference = firestore.collection("teams").document(teamId);
-		if(!userReference.get().get().exists() || !teamReference.get().get().exists()) {
+		if(isActiveTeam(teamId) && isActiveUser(userId)) {
+			DocumentReference userReference = getUserReference(userId);
+			DocumentSnapshot userSnapshot = userReference.get().get();
+			DocumentReference teamReference = getTeamReference(teamId);
+			Team userTeam = teamReference.get().get().toObject(Team.class);
+			List<Team> userTeams = userSnapshot.toObject(User.class).getUserTeams();
+			if(userTeams.contains(userTeam)) {
+				int teamIndex = userTeams.indexOf(userTeam);
+				return Optional.of(userTeams.get(teamIndex));
+			}
 			return null;
 		}
-		DocumentSnapshot userSnapshot = userReference.get().get();
-		Team team = teamReference.get().get().toObject(Team.class);
-		List<Team> userTeams = userSnapshot.toObject(User.class).getUserTeams();
-		Team userTeam = null;
-		if(userTeams.contains(team)) {
-			int teamIndex = userTeams.indexOf(team);
-			userTeam = userTeams.get(teamIndex);
-		}
-		return Optional.of(userTeam);
+		return null;
 	}
 	
 	//Get a User's TEAM by its teamName.
 	public Optional<Team> getUserTeamByName(String userId, String teamName) throws InterruptedException, ExecutionException{
-		DocumentReference reference = getUsersCollection().document(userId);
 		Query query = getTeamsCollection().whereEqualTo("teamName", teamName);
-		if(!query.get().get().isEmpty() || !reference.get().get().exists()) {
+		QuerySnapshot querySnapshot = query.get().get();
+		if(isActiveUser(userId) && !querySnapshot.isEmpty()) {
+			Team team = query.get().get().toObjects(Team.class).get(0);			
+			DocumentReference userReference = getUserReference(userId);
+			DocumentSnapshot userSnapshot = userReference.get().get();
+			List<Team> userTeams = userSnapshot.toObject(User.class).getUserTeams();
+			if(userTeams.contains(team)) {
+				int teamIndex = userTeams.indexOf(team);
+				return Optional.of(userTeams.get(teamIndex));
+			}
 			return null;
 		}
-		DocumentSnapshot userSnapshot = reference.get().get();
-		Team team = query.get().get().toObjects(Team.class).get(0);
-		List<Team> userTeams = userSnapshot.toObject(User.class).getUserTeams();
-		Team userTeam = null;
-		if(userTeams.contains(team)) {
-			int teamIndex = userTeams.indexOf(team);
-			userTeam = userTeams.get(teamIndex);
-		}
-		return Optional.of(userTeam);
+		return null;
 	}
 	
 	//Remove player from team player List, same for userTeamList.
 	public String exitTeam(String userId, String teamId) throws InterruptedException, ExecutionException {
-		DocumentReference userReference = getUsersCollection().document(userId);
-		DocumentReference teamReference = getTeamsCollection().document(teamId);
-		if(!userReference.get().get().exists() || !userReference.get().get().exists()) {
-			return "Not found.";
-		}
-		User user = userReference.get().get().toObject(User.class);
-		Team userTeam = teamReference.get().get().toObject(Team.class);
-		List<User> teamUsers = userTeam.getTeamUsers();
-		List<Team> userTeams = user.getUserTeams();
-		if(teamUsers.contains(user) && userTeams.contains(userTeam)) {
-			int teamIndex = userTeams.indexOf(userTeam);
-			int userIndex = teamUsers.indexOf(user);
-			teamUsers.remove(userIndex);
-			userTeams.remove(teamIndex);
-		}
-		WriteBatch batch = firestore.batch();
-		batch.update(teamReference, "teamUsers",teamUsers);
-		batch.update(userReference, "userTeams", userTeams);
-		List<WriteResult> results = batch.commit().get();
-		results.forEach(result -> 
-				System.out.println("Update Time: " + result.getUpdateTime()));
-		if(!userTeams.contains(userTeam) && !teamUsers.contains(user)) {
+		if(isActiveUser(userId) || isActiveTeam(teamId)) {
+			DocumentReference userReference = getUsersCollection().document(userId);
+			DocumentReference teamReference = getTeamsCollection().document(teamId);
+			User user = userReference.get().get().toObject(User.class);
+			Team userTeam = teamReference.get().get().toObject(Team.class);
+			List<User> teamUsers = userTeam.getTeamUsers();
+			List<Team> userTeams = user.getUserTeams();
+			if(teamUsers.contains(user) && userTeams.contains(userTeam)) {
+				int teamIndex = userTeams.indexOf(userTeam);
+				int userIndex = teamUsers.indexOf(user);
+				teamUsers.remove(userIndex);
+				userTeams.remove(teamIndex);
+			}
+			WriteBatch batch = firestore.batch();
+			batch.update(teamReference, "teamUsers",teamUsers);
+			batch.update(userReference, "userTeams", userTeams);
+			batch.commit().get()
+				.forEach(result -> 	System.out.println("Update Time: " + result.getUpdateTime()));
 			return "Team exited successfully.";
 		}
-		return "Could not exit team.";
+		return "Not found.";
 	}
 	
 	public List<TeamInviteRequest> getAllTeamRequests(String userId) throws InterruptedException, ExecutionException{
-		DocumentReference reference = getUsersCollection().document(userId);
-		if(!reference.get().get().exists()) {
-			return null;
+		if(isActiveUser(userId)) {
+			DocumentReference reference = getUsersCollection().document(userId);
+			return reference.get().get().toObject(User.class).getUserTeamRequests();
 		}
-		return reference.get().get().toObject(User.class).getUserTeamRequests();
+		return null;
 	}
 	
 	public String acceptTeamInvite(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
-		DocumentReference userReference = getUsersCollection().document(teamInviteRequest.getRequestedUser().getUserId());
-		DocumentReference teamReference = getTeamsCollection().document(teamInviteRequest.getTeamRequest().getTeamId());
-		if(!userReference.get().get().exists() || !teamReference.get().get().exists()) {
-			return "Not found.";
-		}
-		User user = userReference.get().get().toObject(User.class);
-		Team userTeam = teamReference.get().get().toObject(Team.class);
-		List<User> teamUsers = userTeam.getTeamUsers();
-		List<Team> userTeams = user.getUserTeams();
-		WriteBatch batch = firestore.batch();
-		if(userTeams.contains(userTeam) && teamUsers.contains(user)) {
-			teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.INVALID);
-			return "User is already a member of this team.";
-		}
-		userTeams.add(userTeam);
-		teamUsers.add(user);
-		batch.update(teamReference, "teamUsers", teamUsers);
-		batch.update(userReference, "userTeams", userTeams);
-		List<WriteResult> results = batch.commit().get();
-		results.forEach(result -> 
-				System.out.println("Update Time: " + result.getUpdateTime()));
-		if(userTeams.contains(userTeam) && teamUsers.contains(user)) {
+		if(isActiveUser(teamInviteRequest.getRequestedUser().getUserId()) && isActiveTeam(teamInviteRequest.getTeamRequest().getTeamId())) {
+			DocumentReference userReference = getUserReference(teamInviteRequest.getRequestedUser().getUserId());
+			DocumentReference teamReference = getTeamReference(teamInviteRequest.getTeamRequest().getTeamId());
+			User user = userReference.get().get().toObject(User.class);
+			Team userTeam = teamReference.get().get().toObject(Team.class);
+			List<User> teamUsers = userTeam.getTeamUsers();
+			List<Team> userTeams = user.getUserTeams();
+			WriteBatch batch = firestore.batch();
+			if(userTeams.contains(userTeam) && teamUsers.contains(user)) {
+				teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.INVALID);
+				return "User is already a member of this team.";
+			}
+			userTeams.add(userTeam);
+			teamUsers.add(user);
+			batch.update(teamReference, "teamUsers", teamUsers);
+			batch.update(userReference, "userTeams", userTeams);
+			batch.commit().get()
+				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
 			teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.ACCEPTED);
 			return "Invite accepted successfully.";
 		}
-		return "Invite could not be accepted.";
+		return "Not found.";
 	}
 	
 	public String declineTeamInvite(TeamInviteRequest teamInviteRequest) {

@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.d1gaming.library.team.TeamInviteRequest;
 import com.d1gaming.library.team.Team;
+import com.d1gaming.library.team.TeamInviteRequest;
 
 @RestController
 @CrossOrigin(origins = "localhost:4200")
 @RequestMapping(value = "userteamapi")
+@PreAuthorize("permitAll()")
 public class UserTeamController {
 
 	@Autowired
@@ -52,15 +53,12 @@ public class UserTeamController {
 	}
 	
 	@PostMapping(value = "/userTeams/exit")
-	@PreAuthorize("hasRole('PLAYER')")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('TEAM_ADMIN')")
 	public ResponseEntity<?> exitTeam(@RequestParam(required = true)String userId,
 									  @RequestBody(required = true)String teamId) throws InterruptedException, ExecutionException{
 		String response = userTeamService.exitTeam(userId, teamId);
 		if(response.equals("Not found.")) {
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-		}
-		if(response.equals("Could not exit team.")) {
-			return new ResponseEntity<>(response, HttpStatus.EXPECTATION_FAILED);
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -84,8 +82,6 @@ public class UserTeamController {
 				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 			case "User is already a member of this team.":
 				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-			case "Invite could not be accepted.":
-				return new ResponseEntity<>(response, HttpStatus.EXPECTATION_FAILED);
 			default:
 				return new ResponseEntity<>(response, HttpStatus.OK);
 		}
