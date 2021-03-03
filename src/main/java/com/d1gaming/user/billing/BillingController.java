@@ -30,7 +30,7 @@ public class BillingController {
 	
 	@PreAuthorize("hasRole('PLAYER')")
 	@PostMapping( value = "/pay", params = "paymentSum")
-	public ResponseEntity<?> makePayment(@RequestParam("paymentSum") String paymentSum){
+	public ResponseEntity<?> makePayment(@RequestParam(required = true) String paymentSum){
 		Map<String, Object>  payment = billingService.createPayment(paymentSum);
 		if(payment.isEmpty()) {
 			return new ResponseEntity<>(payment, HttpStatus.NO_CONTENT);
