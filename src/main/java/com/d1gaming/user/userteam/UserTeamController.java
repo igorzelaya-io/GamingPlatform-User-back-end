@@ -42,6 +42,15 @@ public class UserTeamController {
 		}
 	}
 	
+	@GetMapping(value ="/userTeams")
+	public ResponseEntity<?> getAllUserTeams(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+		List<Team> userTeams = userTeamService.getAllUserTeams(userId);
+		if(userTeams == null || userTeams.isEmpty()) {
+			return new ResponseEntity<>(userTeams, HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<>(userTeams, HttpStatus.OK);
+	}
+	
 	@GetMapping(value = "/userTeams/search", params = "userId")
 	public ResponseEntity<?> getUserTeam(@RequestParam(required = true)String userId,
 										 @RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{

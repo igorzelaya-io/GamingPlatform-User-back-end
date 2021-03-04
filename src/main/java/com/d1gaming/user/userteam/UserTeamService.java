@@ -1,5 +1,6 @@
 package com.d1gaming.user.userteam;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -129,7 +130,15 @@ public class UserTeamService {
 			DocumentReference reference = getUsersCollection().document(userId);
 			return reference.get().get().toObject(User.class).getUserTeamRequests();
 		}
-		return null;
+		return new ArrayList<>();
+	}
+	
+	public List<Team> getAllUserTeams(String userId) throws InterruptedException, ExecutionException{
+		if(isActiveUser(userId)) {
+			DocumentReference userReference = getUserReference(userId);
+			return userReference.get().get().toObject(User.class).getUserTeams();
+		}
+		return new ArrayList<>();
 	}
 	
 	public String acceptTeamInvite(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
