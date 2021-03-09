@@ -29,12 +29,9 @@ public class UserController {
 		
 	@GetMapping(value = "/users/search",params="userName")
 	public ResponseEntity<Object> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
-		if(userName == null) {
-			return new ResponseEntity<>("Invalid Input",HttpStatus.BAD_REQUEST);
-		}
 		User user = userServ.getUserByName(userName);
 		if(user == null) {
-			return new ResponseEntity<>("User Not Found", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<>(user,HttpStatus.OK);
 	}
