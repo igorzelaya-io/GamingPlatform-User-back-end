@@ -27,8 +27,7 @@ public class UserImageController {
 	@Autowired
 	private UserImageService userImageService;
 
-	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
-	@PostMapping(value = "/images/save", params = "userId, file")
+	@PostMapping(value = "/images")
 	public ResponseEntity<?> saveImage(@RequestParam(required = true)String userId, 
 									   @RequestParam(required = true)MultipartFile file) throws IOException, InterruptedException, ExecutionException{
 		ImageModel model = new ImageModel(file.getName(), file.getContentType(), file.getBytes());
@@ -39,8 +38,7 @@ public class UserImageController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
-	
-	@GetMapping(value = "/image/search", params = "userId")
+	@GetMapping(value = "/images")
 	public ResponseEntity<?> getUserImage(@RequestParam(required = true) String userId) throws InterruptedException, ExecutionException{
 		Optional<ImageModel> userImage = userImageService.getUserImage(userId);
 		if(userImage == null ) {

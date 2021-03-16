@@ -21,7 +21,7 @@ import com.d1gaming.library.team.TeamInviteRequest;
 
 @RestController
 @CrossOrigin(origins = "localhost:4200")
-@RequestMapping(value = "userteamapi")
+@RequestMapping(value = "/userteamapi")
 @PreAuthorize("permitAll()")
 public class UserTeamController {
 
