@@ -33,7 +33,7 @@ import com.d1gaming.user.security.JwtTokenUtil;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "localhost:4200")
+@CrossOrigin
 @PreAuthorize("permitAll()")
 public class UserAuthenticationController {
 	
@@ -62,7 +62,7 @@ public class UserAuthenticationController {
 	}
 	
 	@PostMapping("/register")
-	public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest registerRequest) throws InterruptedException, ExecutionException {
+	public ResponseEntity<Object> registerUser(@RequestBody UserRegisterRequest registerRequest) throws InterruptedException, ExecutionException {
 		if(userService.getUserByUserName(registerRequest.getUserName()) != null) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Username is already taken."));
 		}
@@ -128,8 +128,8 @@ public class UserAuthenticationController {
 			userService.saveUser(user);
 		} catch (InterruptedException | ExecutionException e) {
 			e.printStackTrace();
-			return new ResponseEntity<>(new MessageResponse("Something went wrong. Please try again later."), HttpStatus.EXPECTATION_FAILED);
+			return new ResponseEntity<Object>(new MessageResponse("Something went wrong. Please try again later."), HttpStatus.EXPECTATION_FAILED);
 		}
-		return new ResponseEntity<>(new MessageResponse("User created Successfully."), HttpStatus.OK);
+		return new ResponseEntity<Object>(new MessageResponse("User created Successfully."), HttpStatus.OK);
 	}
 }
