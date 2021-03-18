@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.user.User;
 
 @RestController
@@ -28,21 +29,21 @@ public class UserController {
 	UserService userServ;
 		
 	@GetMapping(value = "/users/search",params="userName")
-	public ResponseEntity<Object> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
+	public ResponseEntity<User> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
 		User user = userServ.getUserByName(userName);
 		if(user == null) {
-			return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+			return new ResponseEntity<User>(user, HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(user,HttpStatus.OK);
+		return new ResponseEntity<User>(user,HttpStatus.OK);
 	}
 	
 	@GetMapping(value= "/users/search", params="userId")
-	public ResponseEntity<?> getUserByID(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+	public ResponseEntity<User> getUserByID(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
 		User searchedUser = userServ.getUserById(userId);
 		if(searchedUser != null) {
-			return new ResponseEntity<>(searchedUser, HttpStatus.OK);
+			return new ResponseEntity<User>(searchedUser, HttpStatus.OK);
 		}
-		return new ResponseEntity<>(searchedUser, HttpStatus.NOT_FOUND);
+		return new ResponseEntity<User>(searchedUser, HttpStatus.NOT_FOUND);
 	}
 	
 	@GetMapping("/users")
@@ -56,45 +57,45 @@ public class UserController {
 		
 	@DeleteMapping(value = "/users/delete",params="userId")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
-	public ResponseEntity<Object> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
+	public ResponseEntity<MessageResponse> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
 												 @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
 		if(userField != null) {
 			String response = userServ.deleteUserField(userId, userField);
 			if(response.equals("User not found.")) {
-				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);			
+				return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);			
 			}
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 		}
 		String response = userServ.deleteUserById(userId);
 		if(response.equals("User not found.")) {
-			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}
 	
 	
 	@PutMapping(value = "/users/update")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
-	public ResponseEntity<Object> updateUser(@RequestBody User user) throws InterruptedException, ExecutionException{
+	public ResponseEntity<MessageResponse> updateUser(@RequestBody User user) throws InterruptedException, ExecutionException{
 		String response = userServ.updateUser(user);
 		if(response.equals("User not found.")) {
-			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}
 	
 	@PutMapping(value = "/users/update",params="userId")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
-	public ResponseEntity<Object> updateUserField(@RequestParam(required = true, value="userId")String userId, 
+	public ResponseEntity<MessageResponse> updateUserField(@RequestParam(required = true, value="userId")String userId, 
 												  @RequestParam(required = true)String userField,
 												  @RequestParam(required = true)String replaceValue) throws InterruptedException, ExecutionException{
 		String response = userServ.updateUserField(userId, userField, replaceValue);
 		if(response.equals("User not found.")) {
-			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
 		else if(response.equals("This field cannot be updated.")) {
-			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}	
 }
