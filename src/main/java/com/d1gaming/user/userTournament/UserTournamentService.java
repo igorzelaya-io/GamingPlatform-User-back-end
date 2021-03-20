@@ -17,8 +17,11 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
+import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QuerySnapshot;
+import com.google.cloud.firestore.WriteBatch;
+import com.google.cloud.firestore.WriteResult;
 
 @Service
 public class UserTournamentService {
@@ -90,4 +93,43 @@ public class UserTournamentService {
 		return new ArrayList<>();
 	}
 	
+	public String addTournamentToUserTournamentList(User user, Tournament tournament) throws InterruptedException, ExecutionException {
+		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+			UserTournament userTournament = new UserTournament(tournament.getTournamentId(),tournament, 0, 0 );
+			WriteResult result = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId()).set(userTournament).get();
+			System.out.println("Update Time: " + result.getUpdateTime());
+			return "Tournament added to user list.";
+		}
+		return "Not Found.";
+	}
+	
+	public String addWinToUserTournaments(User user, Tournament tournament) throws InterruptedException, ExecutionException {
+		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+			DocumentReference tournamentSubDocumentReference = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId());
+			WriteBatch batch = firestore.batch();
+			batch.update(tournamentSubDocumentReference, "userTournamentMatchesWins", FieldValue.increment(1));
+			batch.commit().get()
+					.stream()
+					.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
+			return "Added W to record.";
+		}
+		return "Not found.";
+	}
+	
+	public String addLossToUserTournament(User user, Tournament tournament) throws InterruptedException, ExecutionException {
+		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+			DocumentReference tournamentSubDocumentReference = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId());
+			WriteBatch batch = firestore.batch();
+			batch.update(tournamentSubDocumentReference, "userTournamentMatchesLosses", FieldValue.increment(-1));
+			batch.commit().get()
+					.stream()
+					.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
+			return "Added L to record.";
+		}
+		return "Not found.";
+	}
+	
 }
+
+
+
