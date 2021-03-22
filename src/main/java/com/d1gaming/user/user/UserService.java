@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.d1gaming.library.service.D1Service;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
@@ -271,6 +272,21 @@ public class UserService {
 		return response;
 	}
 	
+	public String updateUserTokens(User user, D1Service serviceToConsume) throws InterruptedException, ExecutionException {
+		if(isActive(user.getUserId())) {
+			DocumentReference userReference = getUserReference(user.getUserId());
+			ApiFuture<String> futureTransaction = firestore.runTransaction(transaction -> {
+				DocumentSnapshot userSnapshot = transaction.get(userReference).get();
+				double userTokens = userSnapshot.getDouble("userTokens");
+				transaction.update(userReference, "userTokens", userTokens + serviceToConsume.getServiceGivingAmount());
+				return "Updated Tokens";
+			});
+			return futureTransaction.get();
+		}
+		return "Not found.";
+	}
+	
+	
 	//update user Currency field.
 	public String updateUserCash(String userId, double cashQuantity) throws InterruptedException, ExecutionException {
 		final DocumentReference reference = getUsersCollection().document(userId);
@@ -307,7 +323,6 @@ public class UserService {
 		}
 		return response;
 	}
-	
 	
 	//evaluate if given documentId exists on given collection.
 	public boolean isPresent(String userId,String collectionName) throws InterruptedException, ExecutionException {

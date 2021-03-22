@@ -10,12 +10,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.d1gaming.library.request.UserTokenRequest;
 import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.user.User;
 
@@ -98,4 +100,14 @@ public class UserController {
 		}
 		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}	
+	
+	@PostMapping(value="/users/tokens/add")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
+	public ResponseEntity<MessageResponse> updateUserTokens(@RequestBody(required = true)UserTokenRequest userTokenRequest) throws InterruptedException, ExecutionException{
+		String response = userServ.updateUserTokens(userTokenRequest.getUser(), userTokenRequest.getService());
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
+	}
 }
