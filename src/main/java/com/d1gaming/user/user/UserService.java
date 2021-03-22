@@ -308,15 +308,15 @@ public class UserService {
 	
 	//Update user Token field.
 	public String updateUserTokens(String userId, double tokenQuantity) throws InterruptedException, ExecutionException {
-		final DocumentReference reference = getUsersCollection().document(userId);
+		final DocumentReference userReference = getUsersCollection().document(userId);
 		String response = "User not found.";
 		//evaluate if user exists on collection.
-		if(reference.get().get().exists()) {
+		if(userReference.get().get().exists()) {
 			ApiFuture<String> futureTransaction = firestore.runTransaction(transaction -> {
-				Map<String,Object> map = new HashMap<>();
-				map.put("userTokens",tokenQuantity);
-				transaction.update(reference, map);
-				return "Updated userTokens";
+				DocumentSnapshot userSnapshot = transaction.get(userReference).get();
+				double userTokens = userSnapshot.getDouble("userTokens");
+				transaction.update(userReference, "userTokens", userTokens + tokenQuantity);
+				return "Updated Tokens";
 			});
 			response = futureTransaction.get();
 			return response;

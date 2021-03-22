@@ -30,11 +30,11 @@ import com.paypal.base.rest.PayPalRESTException;
 @Service
 public class BillingService {
 	
-	@Value("d1gaming.app.clientId")
-	private String clientId = "";
+	@Value("${d1gaming.app.clientId}")
+	private String clientId;
 	
-	@Value("d1gaming.app.clientSecret")
-	private String clientSecret = "";
+	@Value("${d1gaming.app.clientSecret}")
+	private String clientSecret;
 	
 	@Autowired
 	private Firestore firestore;
@@ -59,8 +59,8 @@ public class BillingService {
 		
 		RedirectUrls redirectUrls = new RedirectUrls();
 //		Validate URLS. 
-		redirectUrls.setCancelUrl("http://localhost:4200/checkout");
-		redirectUrls.setReturnUrl("http://localhost:4200/checkout");
+		redirectUrls.setCancelUrl("http://localhost:4200/cart");
+		redirectUrls.setReturnUrl("http://localhost:4200/cart");
 		
 		payment.setRedirectUrls(redirectUrls);
 		
