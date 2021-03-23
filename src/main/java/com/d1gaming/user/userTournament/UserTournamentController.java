@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +41,17 @@ public class UserTournamentController {
 	@PostMapping(value = "/userTournaments/add")
 	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
 	public ResponseEntity<MessageResponse> addTournamentToUserTournamentList(@RequestBody(required = true)UserTournamentRequest userTournamentRequest) throws InterruptedException, ExecutionException{
-		String response = userTournamentService.addTournamentToUserTournamentList(userTournamentRequest.getUser(), userTournamentRequest.getTournament());
+		String response = userTournamentService.addTournamentToUserTournamentList(userTournamentRequest.getUser(),userTournamentRequest.getTeam(), userTournamentRequest.getTournament());
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
+	}
+	
+	@DeleteMapping(value="/userTournaments/delete")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
+	public ResponseEntity<MessageResponse> deleteTournamentFromUserList(@RequestBody(required = true)UserTournamentRequest userTournamentRequest) throws InterruptedException, ExecutionException{
+		String response = userTournamentService.deleteTournamentFromUserTournamentList(userTournamentRequest.getUser(), userTournamentRequest.getTournament());
 		if(response.equals("Not found.")) {
 			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
@@ -48,6 +59,7 @@ public class UserTournamentController {
 	}
 	
 	@PostMapping(value = "/userTournaments/matches/addW")
+	@PreAuthorize("hasRole('PLAYER' or hasRole('ADMIN'))")
 	public ResponseEntity<MessageResponse> addWinToUserTournaments(@RequestBody(required = true)UserTournamentRequest userTournamentRequest) throws InterruptedException, ExecutionException{
 		String response = userTournamentService.addWinToUserTournaments(userTournamentRequest.getUser(), userTournamentRequest.getTournament());
 		if(response.equals("Not found.")) {
@@ -57,6 +69,7 @@ public class UserTournamentController {
 	}
 	
 	@PostMapping(value = "/userTournaments/matches/addL")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
 	public ResponseEntity<MessageResponse> addLToUserTournaments(@RequestBody(required = true)UserTournamentRequest userTournamentRequest) throws InterruptedException, ExecutionException{
 		String response = userTournamentService.addLossToUserTournament(userTournamentRequest.getUser(), userTournamentRequest.getTournament());
 		if(response.equals("Not found.")) {

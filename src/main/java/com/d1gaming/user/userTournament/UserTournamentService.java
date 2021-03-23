@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.d1gaming.library.team.Team;
 import com.d1gaming.library.tournament.Tournament;
 import com.d1gaming.library.tournament.TournamentStatus;
 import com.d1gaming.library.user.User;
@@ -93,9 +94,9 @@ public class UserTournamentService {
 		return new ArrayList<>();
 	}
 	
-	public String addTournamentToUserTournamentList(User user, Tournament tournament) throws InterruptedException, ExecutionException {
+	public String addTournamentToUserTournamentList(User user, Team team, Tournament tournament) throws InterruptedException, ExecutionException {
 		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
-			UserTournament userTournament = new UserTournament(tournament.getTournamentId(),tournament, 0, 0 );
+			UserTournament userTournament = new UserTournament(tournament.getTournamentId(),tournament, team, 0, 0 );
 			WriteResult result = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId()).set(userTournament).get();
 			System.out.println("Update Time: " + result.getUpdateTime());
 			return "Tournament added to user list.";
@@ -103,11 +104,22 @@ public class UserTournamentService {
 		return "Not Found.";
 	}
 	
+	public String deleteTournamentFromUserTournamentList(User user, Tournament tournament) throws InterruptedException, ExecutionException {
+		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+			WriteResult resultFromDeletion = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId()).delete().get();
+			System.out.println("Update Time: " + resultFromDeletion.getUpdateTime());
+			return "Tournament deleted from user list.";
+		}
+		return "Not found.";
+	}
+	
 	public String addWinToUserTournaments(User user, Tournament tournament) throws InterruptedException, ExecutionException {
 		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
 			DocumentReference tournamentSubDocumentReference = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId());
+			DocumentReference userReference = getUserReference(user.getUserId());
 			WriteBatch batch = firestore.batch();
 			batch.update(tournamentSubDocumentReference, "userTournamentMatchesWins", FieldValue.increment(1));
+			batch.update(userReference, "userTotalWs", FieldValue.increment(1));
 			batch.commit().get()
 					.stream()
 					.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
@@ -119,8 +131,10 @@ public class UserTournamentService {
 	public String addLossToUserTournament(User user, Tournament tournament) throws InterruptedException, ExecutionException {
 		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
 			DocumentReference tournamentSubDocumentReference = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId());
+			DocumentReference userReference = getUserReference(user.getUserId());
 			WriteBatch batch = firestore.batch();
 			batch.update(tournamentSubDocumentReference, "userTournamentMatchesLosses", FieldValue.increment(-1));
+			batch.update(userReference, "userTotalLs", FieldValue.increment(-1));
 			batch.commit().get()
 					.stream()
 					.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
@@ -130,6 +144,4 @@ public class UserTournamentService {
 	}
 	
 }
-
-
 

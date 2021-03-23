@@ -70,8 +70,9 @@ public class UserAuthenticationController {
 			return ResponseEntity.badRequest().body(new MessageResponse("Email is already taken."));
 		}
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
-						,	registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
-						registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0);
+							,registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
+							new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 
+							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0);
 		
 		List<String> strRoles = registerRequest.getUserRoles();
 		List<Role> roles = new ArrayList<>();
