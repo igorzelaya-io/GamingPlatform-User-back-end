@@ -146,19 +146,29 @@ public class UserTeamService {
 			DocumentReference userReference = getUserReference(teamInviteRequest.getRequestedUser().getUserId());
 			DocumentReference teamReference = getTeamReference(teamInviteRequest.getTeamRequest().getTeamId());
 			User user = userReference.get().get().toObject(User.class);
-			Team userTeam = teamReference.get().get().toObject(Team.class);
-			List<User> teamUsers = userTeam.getTeamUsers();
+			Team team = teamReference.get().get().toObject(Team.class);
+			List<User> teamUsers = team.getTeamUsers();
 			List<Team> userTeams = user.getUserTeams();
-			WriteBatch batch = firestore.batch();
-			if(userTeams.contains(userTeam) && teamUsers.contains(user)) {
+			
+			boolean containsUser = teamUsers
+						.stream()
+						.anyMatch(usr -> usr.getUserName().equals(user.getUserName()));
+			
+			boolean containsTeam = userTeams
+						.stream()
+						.anyMatch(userTeam -> userTeam.getTeamName().equals(team.getTeamName()));
+			
+			if(containsUser && containsTeam) {
 				teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.INVALID);
 				return "User is already a member of this team.";
 			}
-			userTeams.add(userTeam);
+			WriteBatch batch = firestore.batch();
+			userTeams.add(team);
 			teamUsers.add(user);
 			batch.update(teamReference, "teamUsers", teamUsers);
 			batch.update(userReference, "userTeams", userTeams);
 			batch.commit().get()
+				.stream()
 				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
 			teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.ACCEPTED);
 			return "Invite accepted successfully.";
@@ -170,5 +180,11 @@ public class UserTeamService {
 		teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.DECLINED); 
 		return "Invite declined.";
 	}
+	
+//	public String addTeamToUserList(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
+//		if(isActiveUser(teamInviteRequest.getRequestedUser().getUserId()) && isActiveTeam(teamInviteRequest.getTeamRequest().getTeamId())) {
+//			DocumentReference 
+//		}
+//	}
 	
 }

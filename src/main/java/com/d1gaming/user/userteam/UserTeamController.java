@@ -54,7 +54,7 @@ public class UserTeamController {
 	
 	@GetMapping(value = "/userTeams/search", params = "userId")
 	public ResponseEntity<Team> getUserTeam(@RequestParam(required = true)String userId,
-										 @RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{
+											@RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{
 		Optional<Team> userTeam = userTeamService.getUserTeamById(userId, teamId);
 		if(userTeam == null) {
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -62,25 +62,32 @@ public class UserTeamController {
 		return new ResponseEntity<Team>(userTeam.get(), HttpStatus.OK);
 	}
 	
-	@PostMapping(value = "/userTeams/exit")
-	@PreAuthorize("hasRole('PLAYER') or hasRole('TEAM_ADMIN')")
-	public ResponseEntity<MessageResponse> exitTeam(@RequestParam(required = true)String userId,
-									  @RequestBody(required = true)String teamId) throws InterruptedException, ExecutionException{
-		String response = userTeamService.exitTeam(userId, teamId);
-		if(response.equals("Not found.")) {
-			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
-	}
-	
 	@GetMapping(value = "/userTeams/search", params="userName")
 	public ResponseEntity<Team> getUserTeamByName(@RequestParam(required = true)String userName,
-											   @RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{
+												  @RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{
 		Optional<Team> userTeam = userTeamService.getUserTeamByName(userName, teamId);
 		if(userTeam == null) {
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<Team>(userTeam.get(), HttpStatus.OK);
+	}
+	
+//	@PostMapping(value ="/userTeams/add")
+//	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
+//	public ResponseEntity<MessageResponse> addTeamToUserList(){
+//		
+//	}
+	
+	
+	@PostMapping(value = "/userTeams/exit")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('TEAM_ADMIN')")
+	public ResponseEntity<MessageResponse> exitTeam(@RequestParam(required = true)String userId,
+									                @RequestParam(required = true)String teamId) throws InterruptedException, ExecutionException{
+		String response = userTeamService.exitTeam(userId, teamId);
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/userTeamRequests/accept")
