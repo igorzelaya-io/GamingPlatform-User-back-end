@@ -163,6 +163,8 @@ public class UserTeamService {
 				return "User is already a member of this team.";
 			}
 			WriteBatch batch = firestore.batch();
+			team.setTeamUsers(null);
+			user.setUserTeams(null);
 			userTeams.add(team);
 			teamUsers.add(user);
 			batch.update(teamReference, "teamUsers", teamUsers);
