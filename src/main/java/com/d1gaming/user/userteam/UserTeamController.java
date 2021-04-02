@@ -106,7 +106,7 @@ public class UserTeamController {
 	
 	@PostMapping(value = "/userTeamRequests/decline")
 	@PreAuthorize("hasRole('PLAYER')")
-	public ResponseEntity<MessageResponse> declineUserTeamRequest(@RequestBody(required = true)TeamInviteRequest request){
+	public ResponseEntity<MessageResponse> declineUserTeamRequest(@RequestBody(required = true)TeamInviteRequest request) throws InterruptedException, ExecutionException{
 		String response = userTeamService.declineTeamInvite(request);
 		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}

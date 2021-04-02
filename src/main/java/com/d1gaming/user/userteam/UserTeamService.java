@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -128,7 +129,11 @@ public class UserTeamService {
 	public List<TeamInviteRequest> getAllTeamRequests(String userId) throws InterruptedException, ExecutionException{
 		if(isActiveUser(userId)) {
 			DocumentReference reference = getUsersCollection().document(userId);
-			return reference.get().get().toObject(User.class).getUserTeamRequests();
+			return reference.get().get()
+					.toObject(User.class).getUserTeamRequests()
+					.stream()
+					.filter(invite -> invite.getRequestStatus().equals(TeamInviteRequestStatus.PENDING))
+					.collect(Collectors.toList());
 		}
 		return new ArrayList<>();
 	}
@@ -136,7 +141,10 @@ public class UserTeamService {
 	public List<Team> getAllUserTeams(String userId) throws InterruptedException, ExecutionException{
 		if(isActiveUser(userId)) {
 			DocumentReference userReference = getUserReference(userId);
-			return userReference.get().get().toObject(User.class).getUserTeams();
+			return userReference.get().get().toObject(User.class).getUserTeams()
+					.stream()
+					.filter(team -> team.getTeamStatus().equals(TeamStatus.ACTIVE))
+					.collect(Collectors.toList());
 		}
 		return new ArrayList<>();
 	}
@@ -159,7 +167,22 @@ public class UserTeamService {
 						.anyMatch(userTeam -> userTeam.getTeamName().equals(team.getTeamName()));
 			
 			if(containsUser && containsTeam) {
-				teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.INVALID);
+				List<TeamInviteRequest> teamInviteRequestList = team.getTeamRequests()
+						.stream()
+						.filter(invite -> invite.getRequestedUser().getUserId().equals(user.getUserId()))
+						.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.INVALID))
+						.collect(Collectors.toList());
+				List<TeamInviteRequest> userInviteRequestList = user.getUserTeamRequests()
+						.stream()
+						.filter(invite -> invite.getTeamRequest().getTeamId().equals(team.getTeamId()))
+						.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.INVALID))
+						.collect(Collectors.toList());
+				WriteBatch batch = firestore.batch();
+				batch.update(teamReference, "teamRequests", teamInviteRequestList);
+				batch.update(userReference, "userTeamRequests", userInviteRequestList);
+				batch.commit().get()
+				.stream()
+				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));v
 				return "User is already a member of this team.";
 			}
 			WriteBatch batch = firestore.batch();
@@ -167,26 +190,54 @@ public class UserTeamService {
 			user.setUserTeams(null);
 			userTeams.add(team);
 			teamUsers.add(user);
+			
+			List<TeamInviteRequest> teamInviteRequestList = team.getTeamRequests()
+									.stream()
+									.filter(invite -> invite.getRequestedUser().getUserId().equals(user.getUserId()))
+									.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.ACCEPTED))
+									.collect(Collectors.toList());
+			List<TeamInviteRequest> userInviteRequestList = user.getUserTeamRequests()
+					.stream()
+					.filter(invite -> invite.getTeamRequest().getTeamId().equals(team.getTeamId()))
+					.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.ACCEPTED))
+					.collect(Collectors.toList());
+			
+			batch.update(teamReference, "teamRequests", teamInviteRequestList);
+			batch.update(userReference, "userTeamRequests", userInviteRequestList);
 			batch.update(teamReference, "teamUsers", teamUsers);
 			batch.update(userReference, "userTeams", userTeams);
 			batch.commit().get()
 				.stream()
 				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
-			teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.ACCEPTED);
+			
 			return "Invite accepted successfully.";
 		}
 		return "Not found.";
 	}
 	
-	public String declineTeamInvite(TeamInviteRequest teamInviteRequest) {
-		teamInviteRequest.setRequestStatus(TeamInviteRequestStatus.DECLINED); 
+	public String declineTeamInvite(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
+		DocumentReference teamReference = getTeamReference(teamInviteRequest.getTeamRequest().getTeamId());
+		DocumentReference userReference = getUserReference(teamInviteRequest.getRequestedUser().getUserId());
+		Team team = teamInviteRequest.getTeamRequest();
+		User user = teamInviteRequest.getRequestedUser();
+		List<TeamInviteRequest> teamInvites = team.getTeamRequests()
+								.stream()
+								.filter(invite -> invite.getRequestedUser().getUserId().equals(user.getUserId()))
+								.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.DECLINED))
+								.collect(Collectors.toList());
+		List<TeamInviteRequest> userInviteRequestList = user.getUserTeamRequests()
+				.stream()
+				.filter(invite -> invite.getTeamRequest().getTeamId().equals(team.getTeamId()))
+				.peek(invite -> invite.setRequestStatus(TeamInviteRequestStatus.DECLINED))
+				.collect(Collectors.toList());
+		
+		WriteBatch batch = firestore.batch();
+		batch.update(teamReference, "teamRequests", teamInvites);
+		batch.update(userReference, "userTeamRequests", userInviteRequestList);
+		batch.commit().get()
+				.stream()
+				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
 		return "Invite declined.";
 	}
-	
-//	public String addTeamToUserList(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
-//		if(isActiveUser(teamInviteRequest.getRequestedUser().getUserId()) && isActiveTeam(teamInviteRequest.getTeamRequest().getTeamId())) {
-//			DocumentReference 
-//		}
-//	}
 	
 }
