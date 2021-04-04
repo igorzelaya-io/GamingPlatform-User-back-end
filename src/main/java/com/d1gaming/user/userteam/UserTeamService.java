@@ -182,7 +182,7 @@ public class UserTeamService {
 				batch.update(userReference, "userTeamRequests", userInviteRequestList);
 				batch.commit().get()
 				.stream()
-				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));v
+				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
 				return "User is already a member of this team.";
 			}
 			WriteBatch batch = firestore.batch();
