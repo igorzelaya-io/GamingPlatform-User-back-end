@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.d1gaming.library.match.Match;
 import com.d1gaming.library.team.Team;
+import com.d1gaming.library.team.TeamTournamentStatus;
 import com.d1gaming.library.tournament.Tournament;
 import com.d1gaming.library.tournament.TournamentStatus;
 import com.d1gaming.library.user.User;
@@ -77,28 +79,51 @@ public class UserTournamentService {
 	public List<Tournament> getAllTournamentsFromUser(String userId) throws InterruptedException, ExecutionException{
 		if(isActive(userId)) {
 			ApiFuture<QuerySnapshot> queryForTournaments = getTournamentsSubcollectionFromUser(userId).get();
-			return queryForTournaments.get().getDocuments()
-											.stream()
-											.map(document -> document.toObject(UserTournament.class))
-										    .map(userTournament -> userTournament.getUserTournaments())
-										    .filter( tournament -> {
-												try {
-													return isActive(tournament.getTournamentId());
-												} catch (InterruptedException | ExecutionException e) { 
-													e.printStackTrace();
-												} 
-												return false;
-											} )
-										    .collect(Collectors.toList());
+			List<UserTournament> userTournaments = queryForTournaments.get()
+															.getDocuments()
+															.stream()
+															.map(document -> document.toObject(UserTournament.class))
+															.filter(userTournament -> userTournament.getUserTournamentStatus().equals(TeamTournamentStatus.ACTIVE))
+															.collect(Collectors.toList());
+			return userTournaments
+					.stream()
+					.map(userTournament -> userTournament.getUserTournament())
+					.filter(tournament -> {
+						try {
+							return isActiveTournament(tournament.getTournamentId());
+						} catch (InterruptedException | ExecutionException e) {
+							e.printStackTrace();
+						}
+						return false;
+					})
+					.collect(Collectors.toList());
+					
 		}
 		return new ArrayList<>();
 	}
 	
+	//TODO:
+//	public List<Match> getAllActiveMatchesFromUser(User user, Tournament tournament) throws InterruptedException, ExecutionException{
+//		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+//			
+//		}
+//	}
+//	
+//	public List<Match> getAllInactiveMatchesFromUser(User user, Tournament tournament){
+//		
+//	}
+	
 	public String addTournamentToUserTournamentList(User user, Team team, Tournament tournament) throws InterruptedException, ExecutionException {
 		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
-			UserTournament userTournament = new UserTournament(tournament.getTournamentId(),tournament, team, 0, 0 );
-			WriteResult result = getTournamentsSubcollectionFromUser(user.getUserId()).document(tournament.getTournamentId()).set(userTournament).get();
-			System.out.println("Update Time: " + result.getUpdateTime());
+			List<Match> userTournamentMatches = new ArrayList<>();
+			UserTournament userTournament = new UserTournament(tournament, team, 0, 0, userTournamentMatches, TeamTournamentStatus.ACTIVE );
+			DocumentReference userTournamentReference = getTournamentsSubcollectionFromUser(user.getUserId()).add(userTournament).get();
+			String documentId = userTournamentReference.getId();
+			WriteBatch batch = firestore.batch();
+			batch.update(userTournamentReference, "userTournamentId", documentId);
+			batch.commit().get()
+						.stream()
+						.forEach(results -> System.out.println("Update Time: " + results.getUpdateTime()));
 			return "Tournament added to user list.";
 		}
 		return "Not Found.";
