@@ -75,10 +75,11 @@ public class UserAuthenticationController {
 		
 		List<Team> userTeams = new ArrayList<Team>();
 		List<TeamInviteRequest> userTeamInvites = new ArrayList<TeamInviteRequest>();
+		List<UserTournament> userTournaments = new ArrayList<UserTournament>();
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 							,registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 							userTeams, userTeamInvites,
-							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0);
+							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0, userTournaments);
 		
 		List<String> strRoles = registerRequest.getUserRoles();
 		List<Role> roles = new ArrayList<>();
