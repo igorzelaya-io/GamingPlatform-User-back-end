@@ -22,8 +22,8 @@ import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.user.User;
 
 @RestController
-@RequestMapping("/userapi")
-@CrossOrigin(origins = "localhost:4200")
+@CrossOrigin(origins = "http://34.122.97.231")
+@RequestMapping(value = "/userapi")
 @PreAuthorize("permitAll()")
 public class UserController {
 	
@@ -40,7 +40,7 @@ public class UserController {
 	}
 	
 	@GetMapping(value= "/users/search", params="userId")
-	public ResponseEntity<User> getUserByID(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+	public ResponseEntity<User> getUserByID(@RequestParam(required = true, value="userId")String userId) throws InterruptedException, ExecutionException{
 		User searchedUser = userServ.getUserById(userId);
 		if(searchedUser != null) {
 			return new ResponseEntity<User>(searchedUser, HttpStatus.OK);
@@ -60,7 +60,7 @@ public class UserController {
 	@DeleteMapping(value = "/users/delete",params="userId")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<MessageResponse> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
-												 @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
+												 		  @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
 		if(userField != null) {
 			String response = userServ.deleteUserField(userId, userField);
 			if(response.equals("User not found.")) {
