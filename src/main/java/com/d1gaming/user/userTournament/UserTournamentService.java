@@ -96,7 +96,7 @@ public class UserTournamentService {
 //	}
 	
 	public String addTournamentToUserTournamentList(User user, Team team, Tournament tournament) throws InterruptedException, ExecutionException {
-		if(isActive(user.getUserId()) && isActiveTournament(tournament.getTournamentId())) {
+		if(isActive(user.getUserId())) {
 			DocumentReference userReference = getUserReference(user.getUserId());
 			List<Match> userTournamentMatches = new ArrayList<>();
 			UserTournament userTournament = new UserTournament(tournament, team, 0, 0, userTournamentMatches, TeamTournamentStatus.ACTIVE );
@@ -105,9 +105,7 @@ public class UserTournamentService {
 			userTournaments.add(userTournament);
 			WriteBatch batch = firestore.batch();
 			batch.update(userReference, "userTournaments", userTournaments);
-			batch.commit().get()
-						.stream()
-						.forEach(results -> System.out.println("Update Time: " + results.getUpdateTime()));
+			batch.commit().get();
 			return "Tournament added to user list.";
 		}
 		return "Not Found.";
@@ -130,9 +128,7 @@ public class UserTournamentService {
 				userTournaments.add(userTournament);
 				WriteBatch batch = firestore.batch();
 				batch.update(userReference, "userTournaments", userTournaments);
-				batch.commit().get()
-						.stream()
-						.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
+				batch.commit().get();
 				return "Tournament deleted from user list.";
 			}
 		}

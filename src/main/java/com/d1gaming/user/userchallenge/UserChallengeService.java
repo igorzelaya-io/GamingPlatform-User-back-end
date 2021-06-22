@@ -1,64 +1,70 @@
 package com.d1gaming.user.userchallenge;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.d1gaming.library.challenge.Challenge;
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserChallenge;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteBatch;
+
+@Service
 public class UserChallengeService {
 
-	private final String USERCHALLENGE_COLLECTION = "userChallenges";
+	private final String USER_COLLECTION = "users";
 	
 	@Autowired
 	private Firestore firestore;
 	
-	private CollectionReference getUserChallengesCollection() {
-		return firestore.collection(USERCHALLENGE_COLLECTION);
+	private CollectionReference getUsersCollection() {
+		return firestore.collection(USER_COLLECTION);
 	}
 	
-	public List<Challenge> getAllUsersChallenges() throws InterruptedException, ExecutionException{
-		//Asynchronously retrieve all documents.
-		QuerySnapshot userChallengesRef = getUserChallengesCollection().get().get();
-		//If Query snapshot is empty, no challenges found, return empty list.
-		if(userChallengesRef.isEmpty()) {
-			return new ArrayList<>();
+	public List<Challenge> getAllUserChallenges(String userId) throws InterruptedException, ExecutionException{
+		DocumentReference userReference = getUsersCollection().document(userId);
+		DocumentSnapshot userSnapshot = userReference.get().get();
+		if(userSnapshot.exists()) {
+			User userOnDB = userSnapshot.toObject(User.class);
+			List<UserChallenge> userChallengesList = userOnDB.getUserChallenges();
+			List<Challenge> challengeList = null;
+			try {
+				challengeList = userChallengesList.stream()
+						   .map(userChallenge -> userChallenge.getUserChallenge())
+						   .collect(Collectors.toList());
+			}
+			catch(NullPointerException e) {
+				return new ArrayList<>();
+			}
+			return challengeList;
 		}
-		return userChallengesRef.toObjects(Challenge.class);
+		return new ArrayList<>();
 	}
 	
-	public Optional<Challenge> getChallengeById(String challengeId) throws InterruptedException, ExecutionException{
-		DocumentReference reference = getUserChallengesCollection().document(challengeId);
-		//Evaluate if document with provided id exists in collection, else, return null.
-		if(!reference.get().get().exists()) {
-			return null;
-		}
-		DocumentSnapshot challengeSnapshot = reference.get().get();
-		return Optional.of(challengeSnapshot.toObject(Challenge.class));
-	}
-	
-	public String postChallenge(Challenge challenge, User user) throws InterruptedException, ExecutionException {
-		//Add a document onto challenges subcollection with given body and auto-generated ID.
-		DocumentReference reference = getUserChallengesCollection().add(challenge).get();
-		String challengeId = reference.getId();
-		WriteBatch batch = firestore.batch();
-		//Assign auto-generated id to challengeId field.
-		batch.update(reference, "challengeId", challengeId);
-		//Assign given user to challengeUserAdmin 
-		batch.update(reference, "challengeUserAdmin", user);
-		return " ";
+	//public Optional<Challenge> getChallengeById(String challengeId) throws InterruptedException, ExecutionException{
 		
-		
+	//}
 	
-	}
+	//TODO:
+//	public String postChallenge(Challenge challenge, User user) throws InterruptedException, ExecutionException {
+//		//Add a document onto challenges subcollection with given body and auto-generated ID.
+//		DocumentReference reference = getUserChallengesCollection().add(challenge).get();
+//		String challengeId = reference.getId();
+//		WriteBatch batch = firestore.batch();
+//		//Assign auto-generated id to challengeId field.
+//		batch.update(reference, "challengeId", challengeId);
+//		//Assign given user to challengeUserAdmin 
+//		batch.update(reference, "challengeUserAdmin", user);
+//		return " ";	
+//	
+//	}
 	
 	public String joinChallenge(Challenge challenge) {
 		return " ";
@@ -73,8 +79,8 @@ public class UserChallengeService {
 			return "User not found.";
 		}
 		WriteBatch batch = firestore.batch();
-//		batch.update(reference, "", value, moreFieldsAndValues)
-//TODO
+		//batch.update(reference, "", value, moreFieldsAndValues)
+		//TODO
 		return " ";
 	}
 }

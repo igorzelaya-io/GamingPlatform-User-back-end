@@ -132,7 +132,7 @@ public class UserTeamService {
 			return reference.get().get()
 					.toObject(User.class).getUserTeamRequests()
 					.stream()
-					.filter(invite -> invite.getRequestStatus().equals(TeamInviteRequestStatus.PENDING))
+//					.filter(invite -> invite.getRequestStatus().equals(TeamInviteRequestStatus.PENDING))
 					.collect(Collectors.toList());
 		}
 		return new ArrayList<>();
@@ -180,9 +180,7 @@ public class UserTeamService {
 				WriteBatch batch = firestore.batch();
 				batch.update(teamReference, "teamRequests", teamInviteRequestList);
 				batch.update(userReference, "userTeamRequests", userInviteRequestList);
-				batch.commit().get()
-				.stream()
-				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
+				batch.commit().get();
 				return "User is already a member of this team.";
 			}
 			WriteBatch batch = firestore.batch();
@@ -206,10 +204,7 @@ public class UserTeamService {
 			batch.update(userReference, "userTeamRequests", userInviteRequestList);
 			batch.update(teamReference, "teamUsers", teamUsers);
 			batch.update(userReference, "userTeams", userTeams);
-			batch.commit().get()
-				.stream()
-				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
-			
+			batch.commit().get();
 			return "Invite accepted successfully.";
 		}
 		return "Not found.";
@@ -234,10 +229,21 @@ public class UserTeamService {
 		WriteBatch batch = firestore.batch();
 		batch.update(teamReference, "teamRequests", teamInvites);
 		batch.update(userReference, "userTeamRequests", userInviteRequestList);
-		batch.commit().get()
-				.stream()
-				.forEach(result -> System.out.println("Update Time: " + result.getUpdateTime()));
+		batch.commit().get();
 		return "Invite declined.";
+	}
+	
+	public String deleteTeamInvite(TeamInviteRequest teamInviteRequest) throws InterruptedException, ExecutionException {
+		DocumentReference userReference = getUserReference(teamInviteRequest.getRequestedUser().getUserId());
+		User user = teamInviteRequest.getRequestedUser();
+		WriteBatch batch = firestore.batch();
+		List<TeamInviteRequest> newUserInviteRequestList = user.getUserTeamRequests()
+				.stream()
+				.filter(invite -> !invite.getRequestedUser().getUserId().equals(user.getUserId()))
+				.collect(Collectors.toList());
+		batch.update(userReference, "userTeamRequests", newUserInviteRequestList);
+		batch.commit().get();
+		return "Invite deleted.";
 	}
 	
 }

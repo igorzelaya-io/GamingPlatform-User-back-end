@@ -1,6 +1,7 @@
 package com.d1gaming.user.user;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.d1gaming.library.request.UserTokenRequest;
 import com.d1gaming.library.response.MessageResponse;
+import com.d1gaming.library.transaction.D1Transaction;
 import com.d1gaming.library.user.User;
 
 @RestController
@@ -56,8 +58,41 @@ public class UserController {
 		}
 		return new ResponseEntity<List<User>>(ls, HttpStatus.OK);
 	}
+	
+	@GetMapping(value = "/users/transactions")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
+	public ResponseEntity<List<D1Transaction>> getAllUserTransactions(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+		List<D1Transaction> userTransactions = userServ.getAllUserTransactions(userId);
+		if(userTransactions.isEmpty()) {
+			return new ResponseEntity<List<D1Transaction>>(userTransactions, HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<List<D1Transaction>>(userTransactions, HttpStatus.OK);
+	}
+	
+	@GetMapping(value="/users/transactions/search")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
+	public ResponseEntity<D1Transaction> getUserTransaction(@RequestParam(required = true)String userId, 
+															@RequestParam(required = true)String transactionId) throws InterruptedException, ExecutionException{
+		Optional<D1Transaction> userTransaction = userServ.getUserTransactionById(userId, transactionId);
+		if(userTransaction.isPresent()) {
+			return new ResponseEntity<D1Transaction>(userTransaction.get(), HttpStatus.OK);
+		}
+		return new ResponseEntity<D1Transaction>(userTransaction.get(), HttpStatus.NOT_FOUND);
+	}
+	
+	@DeleteMapping(value = "/users/transactions/delete")
+	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
+	public ResponseEntity<MessageResponse> deleteUserTransaction(@RequestParam(required = true)String userId,
+																  @RequestParam(required = true)String transactionId) throws InterruptedException, ExecutionException{
+		String response = userServ.deleteUserTransaction(userId, transactionId);
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK); 
+	}
 		
-	@DeleteMapping(value = "/users/delete",params="userId")
+	
+	@DeleteMapping(value = "/users/delete")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<MessageResponse> deleteUserById(@RequestParam(value="userId", required = true)String userId, 
 												 		  @RequestParam(required = false, value="userField") String userField) throws InterruptedException, ExecutionException{
@@ -87,7 +122,7 @@ public class UserController {
 	}
 	
 	@PutMapping(value = "/users/update",params="userId")
-	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
+	//@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<MessageResponse> updateUserField(@RequestParam(required = true, value="userId")String userId, 
 												  @RequestParam(required = true)String userField,
 												  @RequestParam(required = true)String replaceValue) throws InterruptedException, ExecutionException{
@@ -110,4 +145,16 @@ public class UserController {
 		}
 		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}
+	
+	@PostMapping(value="/users/ban")
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<? extends MessageResponse> banPlayer(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+		String response = userServ.banUserById(userId);
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
+	}
+	
 }

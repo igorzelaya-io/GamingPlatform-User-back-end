@@ -28,6 +28,7 @@ import com.d1gaming.library.role.Role;
 import com.d1gaming.library.team.Team;
 import com.d1gaming.library.team.TeamInviteRequest;
 import com.d1gaming.library.user.User;
+import com.d1gaming.library.user.UserChallenge;
 import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
 import com.d1gaming.library.user.UserTournament;
@@ -72,14 +73,14 @@ public class UserAuthenticationController {
 		if(userService.getUserByEmail(registerRequest.getUserEmail()) != null) {
 			return ResponseEntity.badRequest().body(new MessageResponse("Email is already taken."));
 		}
-		
 		List<Team> userTeams = new ArrayList<Team>();
 		List<TeamInviteRequest> userTeamInvites = new ArrayList<TeamInviteRequest>();
 		List<UserTournament> userTournaments = new ArrayList<UserTournament>();
+		List<UserChallenge> userChallenges = new ArrayList<UserChallenge>();
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 							,registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 							userTeams, userTeamInvites,
-							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0, userTournaments);
+							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0, userTournaments, userChallenges);
 		
 		List<String> strRoles = registerRequest.getUserRoles();
 		List<Role> roles = new ArrayList<>();

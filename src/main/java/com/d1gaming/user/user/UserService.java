@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.d1gaming.library.service.D1Service;
+import com.d1gaming.library.transaction.D1Transaction;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserDetailsImpl;
 import com.d1gaming.library.user.UserStatus;
@@ -72,6 +73,30 @@ public class UserService {
 			//There will only be on User object on list, we will retrieve the first one.
 			for(User currUser: userLs) {
 				return Optional.of(currUser);
+			}
+		}
+		return null;
+	}
+	
+	public List<D1Transaction> getAllUserTransactions(String userId) throws InterruptedException, ExecutionException{
+		if(isActive(userId)) {
+			return getUserReference(userId).collection("userTransactions").get().get()
+																.getDocuments()
+																.stream()
+																.map(document -> document.toObject(D1Transaction.class))
+																.collect(Collectors.toList());
+		}
+		return new ArrayList<>();
+	}
+	
+	public Optional<D1Transaction> getUserTransactionById(String userId, String transactionId) throws InterruptedException, ExecutionException{
+		if(isActive(userId)) {
+			QuerySnapshot query = getUserReference(userId).collection("userTransactions").whereGreaterThanOrEqualTo("transactionId", transactionId).get().get();
+			if(!query.isEmpty()) {				
+				return Optional.of(query.getDocuments()
+						.stream()
+						.map(queryDocument -> queryDocument.toObject(D1Transaction.class))
+						.collect(Collectors.toList()).get(0));
 			}
 		}
 		return null;
@@ -163,7 +188,7 @@ public class UserService {
 			return "User not found.";
 		}
 		WriteBatch batch = firestore.batch();
-		batch.update(reference, "userStatusCode",UserStatus.INACTIVE);
+		reference.delete();
 		ApiFuture<List<WriteResult>> result = batch.commit();
 		List<WriteResult> results = result.get();
 		results.forEach(response -> {
@@ -185,6 +210,14 @@ public class UserService {
 		List<WriteResult> results = batch.commit().get();
 		results.forEach(response -> System.out.println("Update Time: " + response.getUpdateTime()));
 		return "Field deleted Successfully";	
+	}
+	
+	public String deleteUserTransaction(String userId, String transactionId) throws InterruptedException, ExecutionException {
+		if(isActive(userId)) {
+			ApiFuture<WriteResult> transactionReference = getUsersCollection().document(userId).collection("userTransactions").document(transactionId).delete();
+			return "Document deleted successfully."; 
+		}
+		return "Not found.";
 	}
 	
 	//Change UserStatus to BANNED
@@ -237,7 +270,7 @@ public class UserService {
 		else {
 			return "This field canntot be updated.";
 		}
-		return "User field could not be updated.";
+		return "User field updated Successfully";
 	}
 	
 		
@@ -253,21 +286,15 @@ public class UserService {
 		//Evaluate if userName is already in use.
 		String response = "Username is already taken";
 		if(querySnapshot.isEmpty()) {
-				//Transaction to get() tokens and update() tokens.
-				ApiFuture<String> futureTransact = firestore.runTransaction(transaction -> {
-					DocumentSnapshot doc = transaction.get(reference).get();
-					double tokens = doc.getDouble("userTokens");
-					//evaluate if user holds more than one token
-					if(tokens >= 1) {
-						transaction.update(reference, "userTokens", tokens - 1);
-						transaction.update(reference, "userName", newUserName);
-						return "Username updated to: '"+ newUserName +"'";
-					}
-					else {
-						throw new Exception("Not enough Tokens");
-					}
-				});
-				response = futureTransact.get();
+			WriteBatch batch = firestore.batch();
+			User userOnDB = snapshot.toObject(User.class);
+			if(userOnDB.getUserTokens() > 100) {
+				batch.update(reference, "userName", newUserName);
+				batch.update(reference, "userTokens", FieldValue.increment(-100));
+				batch.commit().get();
+				return "User name modified successfully";
+			}
+			return "Not enough tokens to change username";
 		}
 		return response;
 	}
