@@ -11,6 +11,7 @@ import com.d1gaming.library.challenge.Challenge;
 import com.d1gaming.library.challenge.ChallengeStatus;
 import com.d1gaming.library.match.Match;
 import com.d1gaming.library.team.Team;
+import com.d1gaming.library.team.TeamCodChallenge;
 import com.d1gaming.library.team.TeamTournamentStatus;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserChallenge;
@@ -64,21 +65,44 @@ public class UserChallengeService {
 		return new ArrayList<>();
 	}
 	
-	public String addChallengeToUserChallengeList(User user, Team team, Challenge challenge) throws InterruptedException, ExecutionException {
+	public String addChallengeToTeamCodChallengeList(User user, Team team, Challenge challenge) throws InterruptedException, ExecutionException {
 		if(isActiveUser(user.getUserId()) && isActiveChallenge(challenge.getChallengeId())) {
-			DocumentReference userReference = firestore.collection("users").document(user.getUserId());
+			DocumentReference teamReference = firestore.collection("teams").document(team.getTeamId());
+			DocumentReference challengeReference = firestore.collection("challenges").document(challenge.getChallengeId());
+			Team teamOnDB = teamReference.get().get().toObject(Team.class);
+			Challenge challengeOnDB = challengeReference.get().get().toObject(Challenge.class);
+			challengeOnDB.setChallengeHostTeam(teamOnDB);
 			List<Match> userMatches = new ArrayList<>();
-			UserChallenge userChallenge = new UserChallenge(challenge, team, userMatches, 0, 0, TeamTournamentStatus.ACTIVE);
-			User userOnDB = userReference.get().get().toObject(User.class);
-			List<UserChallenge> userChallenges = userOnDB.getUserChallenges();
-			userChallenges.add(userChallenge);
+			TeamCodChallenge teamCodChallengeSubdocument = new TeamCodChallenge(challengeOnDB, userMatches, 0, 0, 0, 0, 0, 0, TeamTournamentStatus.ACTIVE);
+			DocumentReference addedDocumentToTeamCodChallengesSubcollection = firestore.collection("teams").document(team.getTeamId()).collection("teamCodChallenges").add(teamCodChallengeSubdocument).get();
+			String documentId = addedDocumentToTeamCodChallengesSubcollection.getId();
+			List<User> hostTeamUsers = teamOnDB.getTeamUsers();
 			WriteBatch batch = firestore.batch();
-			batch.update(userReference, "userChallenges", userChallenges);
+			batch.update(addedDocumentToTeamCodChallengesSubcollection, "teamCodChallengeId", documentId);
+			batch.update(challengeReference, "challengeHostTeam", teamOnDB);
 			batch.commit().get();
-			return "Challenge added to list";
-			
+			hostTeamUsers.forEach(teamUser -> {
+				try {
+					addChallengeToUserChallengeList(teamUser, teamOnDB, challengeOnDB);
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+			});
+			return "Challenge added successfully to team.";
 		}
 		return "Not found.";
+	}
+	
+	public void addChallengeToUserChallengeList(User user, Team team, Challenge challenge) throws InterruptedException, ExecutionException {		
+		DocumentReference userReference = firestore.collection("users").document(user.getUserId());
+		User userOnDB = userReference.get().get().toObject(User.class);
+		List<Match> challengeMatches = new ArrayList<>();
+		UserChallenge userChallenge = new UserChallenge(challenge, team, challengeMatches, 0, 0, TeamTournamentStatus.ACTIVE);
+		List<UserChallenge> userChallenges = userOnDB.getUserChallenges();
+		userChallenges.add(userChallenge);
+		WriteBatch batch = firestore.batch();
+		batch.update(userReference, "userChallenges", userChallenges);
+		batch.commit().get();
 	}
 	
 }

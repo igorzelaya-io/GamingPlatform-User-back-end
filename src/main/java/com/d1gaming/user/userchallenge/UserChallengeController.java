@@ -40,7 +40,7 @@ public class UserChallengeController {
 	@PostMapping(value="/userChallenges/add")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
 	public ResponseEntity<MessageResponse> addChallengeToUserChallengeList(@RequestBody(required = true)UserChallengeRequest userChallengeRequest) throws InterruptedException, ExecutionException{
-		String response = userChallengesService.addChallengeToUserChallengeList(userChallengeRequest.getUser(), userChallengeRequest.getTeam(), userChallengeRequest.getChallenge());
+		String response = userChallengesService.addChallengeToTeamCodChallengeList(userChallengeRequest.getUser(), userChallengeRequest.getTeam(), userChallengeRequest.getChallenge());
 		if(response.equals("Not found.")) {
 			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
