@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.d1gaming.library.image.ImageModel;
 import com.d1gaming.library.request.UserTokenRequest;
 import com.d1gaming.library.response.MessageResponse;
 import com.d1gaming.library.transaction.D1Transaction;
 import com.d1gaming.library.user.User;
+import com.d1gaming.user.image.UserImageService;
 
 @RestController
 @CrossOrigin(origins = "http://34.122.97.231")
@@ -31,6 +33,9 @@ public class UserController {
 	
 	@Autowired
 	UserService userServ;
+	
+	@Autowired
+	private UserImageService imageService;
 		
 	@GetMapping(value = "/users/search",params="userName")
 	public ResponseEntity<User> getUserByName(@RequestParam(value = "userName", required = true)final String userName) throws InterruptedException, ExecutionException{
@@ -78,6 +83,24 @@ public class UserController {
 			return new ResponseEntity<D1Transaction>(userTransaction.get(), HttpStatus.OK);
 		}
 		return new ResponseEntity<D1Transaction>(userTransaction.get(), HttpStatus.NOT_FOUND);
+	}
+	
+	@GetMapping(value="/users/image")
+	public ResponseEntity<ImageModel> getUserImage(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
+		Optional<ImageModel> userImage = imageService.getUserImage(userId);
+		if(userImage.isPresent()) {
+			return new ResponseEntity<ImageModel>(userImage.get(), HttpStatus.OK);
+		}
+		return new ResponseEntity<ImageModel>(userImage.get(), HttpStatus.NO_CONTENT);
+	}
+	
+	@PostMapping(value="/users/image")
+	public ResponseEntity<MessageResponse> addImageToUser(@RequestBody(required = true)ImageModel userImage) throws InterruptedException, ExecutionException{
+		String response = imageService.saveUserImage(userImage);
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
 	}
 	
 	@DeleteMapping(value = "/users/transactions/delete")

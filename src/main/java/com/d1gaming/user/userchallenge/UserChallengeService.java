@@ -8,8 +8,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.d1gaming.library.challenge.Challenge;
+import com.d1gaming.library.challenge.ChallengeStatus;
+import com.d1gaming.library.match.Match;
+import com.d1gaming.library.team.Team;
+import com.d1gaming.library.team.TeamTournamentStatus;
 import com.d1gaming.library.user.User;
 import com.d1gaming.library.user.UserChallenge;
+import com.d1gaming.library.user.UserStatus;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -28,59 +33,52 @@ public class UserChallengeService {
 		return firestore.collection(USER_COLLECTION);
 	}
 	
-	public List<Challenge> getAllUserChallenges(String userId) throws InterruptedException, ExecutionException{
-		DocumentReference userReference = getUsersCollection().document(userId);
+	private boolean isActiveUser(String userId) throws InterruptedException, ExecutionException {
+		DocumentReference userReference = firestore.collection("users").document(userId);
 		DocumentSnapshot userSnapshot = userReference.get().get();
-		if(userSnapshot.exists()) {
+		if(userSnapshot.exists() && userSnapshot.toObject(User.class).getUserStatusCode().equals(UserStatus.ACTIVE)) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isActiveChallenge(String challengeId) throws InterruptedException, ExecutionException {
+		DocumentReference challengeReference = firestore.collection("challenges").document(challengeId);
+		DocumentSnapshot challengeSnapshot = challengeReference.get().get();
+		if(challengeSnapshot.exists() && challengeSnapshot.toObject(Challenge.class).getChallengeStatus().equals(ChallengeStatus.ACTIVE)) {
+			return true;
+		}
+		return false; 
+	}
+	
+	public List<Challenge> getAllUserChallenges(String userId) throws InterruptedException, ExecutionException{
+		if(isActiveUser(userId)) {
+			DocumentReference userReference = getUsersCollection().document(userId);
+			DocumentSnapshot userSnapshot = userReference.get().get();
 			User userOnDB = userSnapshot.toObject(User.class);
 			List<UserChallenge> userChallengesList = userOnDB.getUserChallenges();
-			List<Challenge> challengeList = null;
-			try {
-				challengeList = userChallengesList.stream()
+			return userChallengesList.stream()
 						   .map(userChallenge -> userChallenge.getUserChallenge())
 						   .collect(Collectors.toList());
-			}
-			catch(NullPointerException e) {
-				return new ArrayList<>();
-			}
-			return challengeList;
 		}
 		return new ArrayList<>();
 	}
 	
-	//public Optional<Challenge> getChallengeById(String challengeId) throws InterruptedException, ExecutionException{
-		
-	//}
-	
-	//TODO:
-//	public String postChallenge(Challenge challenge, User user) throws InterruptedException, ExecutionException {
-//		//Add a document onto challenges subcollection with given body and auto-generated ID.
-//		DocumentReference reference = getUserChallengesCollection().add(challenge).get();
-//		String challengeId = reference.getId();
-//		WriteBatch batch = firestore.batch();
-//		//Assign auto-generated id to challengeId field.
-//		batch.update(reference, "challengeId", challengeId);
-//		//Assign given user to challengeUserAdmin 
-//		batch.update(reference, "challengeUserAdmin", user);
-//		return " ";	
-//	
-//	}
-	
-	public String joinChallenge(Challenge challenge) {
-		return " ";
-	}
-
-	//Add challenge moderator role to user.
-	private String addChallengeModeratorRole(User user) throws InterruptedException, ExecutionException {
-		String userId = user.getUserId();
-		DocumentReference reference = firestore.collection("users").document(userId);
-		//Validating if user exists before making changes.
-		if(!reference.get().get().exists()) {
-			return "User not found.";
+	public String addChallengeToUserChallengeList(User user, Team team, Challenge challenge) throws InterruptedException, ExecutionException {
+		if(isActiveUser(user.getUserId()) && isActiveChallenge(challenge.getChallengeId())) {
+			DocumentReference userReference = firestore.collection("users").document(user.getUserId());
+			List<Match> userMatches = new ArrayList<>();
+			UserChallenge userChallenge = new UserChallenge(challenge, team, userMatches, 0, 0, TeamTournamentStatus.ACTIVE);
+			User userOnDB = userReference.get().get().toObject(User.class);
+			List<UserChallenge> userChallenges = userOnDB.getUserChallenges();
+			userChallenges.add(userChallenge);
+			WriteBatch batch = firestore.batch();
+			batch.update(userReference, "userChallenges", userChallenges);
+			batch.commit().get();
+			return "Challenge added to list";
+			
 		}
-		WriteBatch batch = firestore.batch();
-		//batch.update(reference, "", value, moreFieldsAndValues)
-		//TODO
-		return " ";
+		return "Not found.";
 	}
+	
 }

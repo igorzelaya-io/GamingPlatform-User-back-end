@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.d1gaming.library.request.UserLoginRequest;
+import com.d1gaming.library.request.UserPasswordChangeRequest;
 import com.d1gaming.library.request.UserRegisterRequest;
 import com.d1gaming.library.response.JwtResponse;
 import com.d1gaming.library.response.MessageResponse;
@@ -141,4 +142,20 @@ public class UserAuthenticationController {
 		}
 		return new ResponseEntity<Object>(new MessageResponse("User created Successfully."), HttpStatus.OK);
 	}
+	
+	@PostMapping(value="/changePass")
+	@PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
+	public ResponseEntity<MessageResponse> updateUserPassword(@RequestBody(required = true)UserPasswordChangeRequest userPasswordRequest) throws InterruptedException, ExecutionException{
+		Authentication authentication = authenticationManager.authenticate(
+				new UsernamePasswordAuthenticationToken(userPasswordRequest.getUserPasswordChangeName(), 
+														userPasswordRequest.getUserPasswordChangeCurrentPassword())); 
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		User authenticatedUser = UserDetailsImpl.toUser((UserDetailsImpl) authentication.getPrincipal());
+		String response = userService.changeUserPassword(authenticatedUser.getUserId(), userPasswordRequest.getUserPasswordChangeNewPassword());
+		if(response.equals("Not found.")) {
+			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.UNAUTHORIZED);
+		}
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
+	}
+	
 }
