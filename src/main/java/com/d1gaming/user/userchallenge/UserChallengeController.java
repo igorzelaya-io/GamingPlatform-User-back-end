@@ -39,16 +39,12 @@ public class UserChallengeController {
 	
 	@PostMapping(value="/userChallenges/add")
 	@PreAuthorize("hasRole('ADMIN') or hasRole('PLAYER')")
-	public ResponseEntity<MessageResponse> addChallengeToUserChallengeList(@RequestBody(required = true)UserChallengeRequest userChallengeRequest) throws InterruptedException, ExecutionException{
-		String response = userChallengesService.addChallengeToTeamCodChallengeList(userChallengeRequest.getUser(), userChallengeRequest.getTeam(), userChallengeRequest.getChallenge());
+	public ResponseEntity<MessageResponse> addChallengeToTeamCodChallengeList(@RequestBody(required = true)UserChallengeRequest userChallengeRequest) throws InterruptedException, ExecutionException{
+		String response = userChallengesService.addChallengeToTeamCodChallengeList(userChallengeRequest.getUserId(), userChallengeRequest.getTeam(), userChallengeRequest.getChallenge());
 		if(response.equals("Not found.")) {
 			return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.NOT_FOUND);
 		}
-		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);
-		
+		return new ResponseEntity<MessageResponse>(new MessageResponse(response), HttpStatus.OK);		
 	}
 	
-	
-
-
 }

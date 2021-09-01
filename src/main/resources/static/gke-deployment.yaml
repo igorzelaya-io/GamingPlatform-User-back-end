@@ -11,7 +11,7 @@ spec:
     metadata:
       labels:
         app: d1-gaming-user-backend
-        version: 1.2.0
+        version: 1.2.4
     spec:
       volumes:
         - name: google-cloud-key
@@ -19,7 +19,7 @@ spec:
             secretName: compute-admin-key
       containers:
         - name: d1-gaming-user-backend-container
-          image: gcr.io/d1gamingapp/d1-gaming-user-backend:v1.2.0
+          image: gcr.io/d1gamingapp/d1-gaming-user-backend:v1.2.4
           volumeMounts:
             - name: google-cloud-key
               mountPath: /var/secrets/google

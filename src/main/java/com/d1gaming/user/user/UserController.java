@@ -85,6 +85,30 @@ public class UserController {
 		return new ResponseEntity<D1Transaction>(userTransaction.get(), HttpStatus.NOT_FOUND);
 	}
 	
+	@GetMapping(value = "/users/leaderboards/fifa")
+	public ResponseEntity<List<User>> getFirstFifteenUsersByFifaWins() throws InterruptedException, ExecutionException{
+		List<User> usersList = this.userServ.getFirstFifteenUsersByFifaWins();
+		return new ResponseEntity<List<User>>(usersList, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/users/leaderboards/cod")
+	public ResponseEntity<List<User>> getFirstFifteenUsersByCodWins() throws InterruptedException, ExecutionException{
+		List<User> usersList = this.userServ.getFirstFifteenUsersByCodWins();
+		return new ResponseEntity<List<User>>(usersList, HttpStatus.OK);
+	}	
+	
+	@GetMapping(value = "/users/leaderboards/fifa/next")
+	public ResponseEntity<List<User>> getNextPage(@RequestParam(required = true)String lastUserId) throws InterruptedException, ExecutionException{
+		List<User> nextUsersList = this.userServ.getNextFifaPageBy(lastUserId);
+		return new ResponseEntity<List<User>>(nextUsersList, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/users/leaderboards/cod/next")
+	public ResponseEntity<List<User>> getNextCodPage(@RequestParam(required = true)String lastUserId) throws InterruptedException, ExecutionException{
+		List<User> nextUsersList = this.userServ.getNextCodPageBy(lastUserId);
+		return new ResponseEntity<List<User>>(nextUsersList, HttpStatus.OK);
+	}
+	
 	@GetMapping(value="/users/image")
 	public ResponseEntity<ImageModel> getUserImage(@RequestParam(required = true)String userId) throws InterruptedException, ExecutionException{
 		Optional<ImageModel> userImage = imageService.getUserImage(userId);

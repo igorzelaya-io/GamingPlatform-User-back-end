@@ -30,6 +30,7 @@ public class UserChallengeService {
 	@Autowired
 	private Firestore firestore;
 	
+	
 	private CollectionReference getUsersCollection() {
 		return firestore.collection(USER_COLLECTION);
 	}
@@ -46,10 +47,33 @@ public class UserChallengeService {
 	private boolean isActiveChallenge(String challengeId) throws InterruptedException, ExecutionException {
 		DocumentReference challengeReference = firestore.collection("challenges").document(challengeId);
 		DocumentSnapshot challengeSnapshot = challengeReference.get().get();
-		if(challengeSnapshot.exists() && challengeSnapshot.toObject(Challenge.class).getChallengeStatus().equals(ChallengeStatus.ACTIVE)) {
+		Challenge challengeOnDB = challengeSnapshot.toObject(Challenge.class);
+		if(challengeSnapshot.exists() && (challengeOnDB.getChallengeStatus().equals(ChallengeStatus.ACTIVE) 
+											|| challengeOnDB.getChallengeStatus().equals(ChallengeStatus.IN_PROGRESS)
+											|| challengeOnDB.getChallengeStatus().equals(ChallengeStatus.TERMINATED))) {
 			return true;
 		}
 		return false; 
+	}
+	
+	public Challenge getChallengeById(String challengeId) throws InterruptedException, ExecutionException {
+		//If document does not exist, return null.
+		if(isActiveChallenge(challengeId)) {
+			DocumentReference reference = firestore.collection("challenges").document(challengeId);
+			return reference.get().get().toObject(Challenge.class);
+		}
+		return null;
+	}
+	
+	public List<Challenge> getAllChallengesById(List<String> challengesId) throws InterruptedException, ExecutionException{
+		List<Challenge> challengeList = new ArrayList<>();
+		for(String challengeId: challengesId) {
+			Challenge retrievedChallenge = getChallengeById(challengeId);
+			if(retrievedChallenge != null) {
+				challengeList.add(retrievedChallenge);
+			}
+		}
+		return challengeList;
 	}
 	
 	public List<Challenge> getAllUserChallenges(String userId) throws InterruptedException, ExecutionException{
@@ -58,22 +82,26 @@ public class UserChallengeService {
 			DocumentSnapshot userSnapshot = userReference.get().get();
 			User userOnDB = userSnapshot.toObject(User.class);
 			List<UserChallenge> userChallengesList = userOnDB.getUserChallenges();
-			return userChallengesList.stream()
-						   .map(userChallenge -> userChallenge.getUserChallenge())
-						   .collect(Collectors.toList());
+			List<String> userChallengesId = userChallengesList
+												.stream()
+												.map(userChallenge -> userChallenge.getUserChallengeId())
+												.collect(Collectors.toList());
+			return getAllChallengesById(userChallengesId);
+			
 		}
 		return new ArrayList<>();
 	}
 	
-	public String addChallengeToTeamCodChallengeList(User user, Team team, Challenge challenge) throws InterruptedException, ExecutionException {
-		if(isActiveUser(user.getUserId()) && isActiveChallenge(challenge.getChallengeId())) {
+	public String addChallengeToTeamCodChallengeList(String userId, Team team, Challenge challenge) throws InterruptedException, ExecutionException {
+		if(isActiveUser(userId) && isActiveChallenge(challenge.getChallengeId())) {
 			DocumentReference teamReference = firestore.collection("teams").document(team.getTeamId());
 			DocumentReference challengeReference = firestore.collection("challenges").document(challenge.getChallengeId());
 			Team teamOnDB = teamReference.get().get().toObject(Team.class);
 			Challenge challengeOnDB = challengeReference.get().get().toObject(Challenge.class);
-			challengeOnDB.setChallengeHostTeam(teamOnDB);
+			//challengeOnDB.setChallengeHostTeam(teamOnDB);
 			List<Match> userMatches = new ArrayList<>();
-			TeamCodChallenge teamCodChallengeSubdocument = new TeamCodChallenge(challengeOnDB, userMatches, 0, 0, 0, 0, 0, 0, TeamTournamentStatus.ACTIVE);
+			TeamCodChallenge teamCodChallengeSubdocument = new TeamCodChallenge(challengeOnDB.getChallengeId(), userMatches, 0, 0, 0, 0, 0, 0, TeamTournamentStatus.ACTIVE);
+			teamCodChallengeSubdocument.setTeamChallengeTeamId(team.getTeamId());
 			DocumentReference addedDocumentToTeamCodChallengesSubcollection = firestore.collection("teams").document(team.getTeamId()).collection("teamCodChallenges").add(teamCodChallengeSubdocument).get();
 			String documentId = addedDocumentToTeamCodChallengesSubcollection.getId();
 			List<User> hostTeamUsers = teamOnDB.getTeamUsers();
@@ -97,7 +125,7 @@ public class UserChallengeService {
 		DocumentReference userReference = firestore.collection("users").document(user.getUserId());
 		User userOnDB = userReference.get().get().toObject(User.class);
 		List<Match> challengeMatches = new ArrayList<>();
-		UserChallenge userChallenge = new UserChallenge(challenge, team, challengeMatches, 0, 0, TeamTournamentStatus.ACTIVE);
+		UserChallenge userChallenge = new UserChallenge(challenge.getChallengeId(), team, challengeMatches, 0, 0, TeamTournamentStatus.ACTIVE);
 		List<UserChallenge> userChallenges = userOnDB.getUserChallenges();
 		userChallenges.add(userChallenge);
 		WriteBatch batch = firestore.batch();

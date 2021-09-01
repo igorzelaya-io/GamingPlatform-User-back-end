@@ -27,6 +27,7 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
+import com.google.cloud.firestore.Query.Direction;
 import com.google.cloud.firestore.QuerySnapshot;
 import com.google.cloud.firestore.WriteBatch;
 import com.google.cloud.firestore.WriteResult;
@@ -107,6 +108,54 @@ public class UserService {
 		}
 		return null;
 	}
+	
+	public List<User> getFirstFifteenUsersByFifaWins() throws InterruptedException, ExecutionException{
+		CollectionReference usersCollectionReference = getUsersCollection();
+		Query firstPage = usersCollectionReference.orderBy("userFifaTotalWs", Direction.DESCENDING).limit(15);
+		ApiFuture<QuerySnapshot> future = firstPage.get();
+		return future.get()
+							.getDocuments()
+							.stream()
+							.map(document -> document.toObject(User.class))
+							.collect(Collectors.toList());
+	}
+	
+	public List<User> getFirstFifteenUsersByCodWins() throws InterruptedException, ExecutionException{
+		CollectionReference usersCollectionReference = getUsersCollection();
+		Query firstPage = usersCollectionReference.orderBy("userCodTotalWs", Direction.DESCENDING).limit(15);
+		ApiFuture<QuerySnapshot> future = firstPage.get();
+		return future.get()
+							.getDocuments()
+							.stream()
+							.map(document -> document.toObject(User.class))
+							.collect(Collectors.toList());
+	}
+	
+	public List<User> getNextFifaPageBy(String lastUserId) throws InterruptedException, ExecutionException{
+		CollectionReference usersCollectionReference = getUsersCollection();
+		DocumentSnapshot lasUserIdSnapshot = getUserReference(lastUserId).get().get();
+		Query nextPage = usersCollectionReference.orderBy("userFifaTotalWs").startAfter(lasUserIdSnapshot).limit(15);
+		ApiFuture<QuerySnapshot> future = nextPage.get();
+		return future.get()
+									.getDocuments()
+									.stream()
+									.map(document -> document.toObject(User.class))
+									.collect(Collectors.toList());
+	}
+	
+	public List<User> getNextCodPageBy(String lastUserId) throws InterruptedException, ExecutionException{
+		CollectionReference usersCollectionReference = getUsersCollection();
+		DocumentSnapshot lastUserIdSnapshot = getUserReference(lastUserId).get().get();
+		Query nextPage = usersCollectionReference.orderBy("userCodTotalWs").startAfter(lastUserIdSnapshot).limit(15);
+		ApiFuture<QuerySnapshot> future = nextPage.get();
+		return future.get()
+							.getDocuments()
+							.stream()
+							.map(document -> document.toObject(User.class))
+							.collect(Collectors.toList());
+	}
+	
+	
 	
 	//Query for user by given userName. 
 	public Optional<User> getUserByUserName(String userName) throws InterruptedException, ExecutionException{
@@ -233,6 +282,7 @@ public class UserService {
 		return "Field deleted Successfully";	
 	}
 	
+	//TODO
 	public String deleteUserTransaction(String userId, String transactionId) throws InterruptedException, ExecutionException {
 		if(isActive(userId)) {
 			ApiFuture<WriteResult> transactionReference = getUsersCollection().document(userId).collection("userTransactions").document(transactionId).delete();

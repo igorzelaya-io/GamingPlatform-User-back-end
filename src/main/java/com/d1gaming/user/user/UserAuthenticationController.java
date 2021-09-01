@@ -81,7 +81,7 @@ public class UserAuthenticationController {
 		User user = new User(registerRequest.getUserRealName(),registerRequest.getUserName()
 							,registerRequest.getUserPassword(),registerRequest.getUserEmail(),UserStatus.ACTIVE,
 							userTeams, userTeamInvites,
-							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0,0,0, userTournaments, userChallenges);
+							registerRequest.getUserCountry(),registerRequest.getUserBirthDate(), 0.0, 0, 0, 0,0,0, userTournaments, userChallenges);
 		
 		List<String> strRoles = registerRequest.getUserRoles();
 		List<Role> roles = new ArrayList<>();
